@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SamaBrains Solutions - Personal Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .typing-effect {
+            border-right: 3px solid #ff6b35;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { border-color: #ff6b35; }
+            51%, 100% { border-color: transparent; }
+        }
+        
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 smooth-scroll">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold gradient-text">SamaBrains</div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link text-gray-700 hover:text-orange-600">Home</a>
+                    <a href="#about" class="nav-link text-gray-700 hover:text-orange-600">About</a>
+                    <a href="#services" class="nav-link text-gray-700 hover:text-orange-600">Services</a>
+                    <a href="#portfolio" class="nav-link text-gray-700 hover:text-orange-600">Portfolio</a>
+                    <a href="#contact" class="nav-link text-gray-700 hover:text-orange-600">Contact</a>
+                </div>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-700">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="px-6 py-4 space-y-3">
+                <a href="#home" class="block text-gray-700 hover:text-orange-600">Home</a>
+                <a href="#about" class="block text-gray-700 hover:text-orange-600">About</a>
+                <a href="#services" class="block text-gray-700 hover:text-orange-600">Services</a>
+                <a href="#portfolio" class="block text-gray-700 hover:text-orange-600">Portfolio</a>
+                <a href="#contact" class="block text-gray-700 hover:text-orange-600">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen flex items-center justify-center pt-20 fade-in">
+        <div class="container mx-auto px-6">
+            <div class="text-center">
+                <h1 class="text-5xl md:text-7xl font-bold mb-6">
+                    Hi, I'm <span class="gradient-text">SamaBrains Solutions</span>
+                </h1>
+                <div class="text-2xl md:text-3xl text-gray-600 mb-8">
+                    <span id="typed-text"></span><span class="typing-effect"></span>
+                </div>
+                <p class="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
+                    Smart Digital Solutions - Specializing in AI automation, web application development, 
+                    data analytics, and data engineering services to transform your business.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="#contact" class="hero-gradient text-white px-8 py-4 rounded-full font-semibold hover:opacity-90 transition-opacity">
+                        Get In Touch
+                    </a>
+                    <a href="#portfolio" class="border-2 border-orange-600 text-orange-600 px-8 py-4 rounded-full font-semibold hover:bg-orange-600 hover:text-white transition-all">
+                        View My Work
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-16 gradient-text">About Me</h2>
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop&crop=face" 
+                         alt="Profile" class="rounded-2xl shadow-2xl w-full max-w-md mx-auto">
+                </div>
+                <div>
+                    <h3 class="text-2xl font-semibold mb-4">Professional Profile</h3>
+                    <p class="text-gray-600 mb-6">
+                        I am a dedicated professional with expertise in creating innovative digital solutions. 
+                        My journey in technology has been driven by a passion for solving complex problems 
+                        and delivering exceptional user experiences.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-robot text-orange-600 w-6"></i>
+                            <span class="ml-3 text-gray-700">AI Automation</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-code text-orange-600 w-6"></i>
+                            <span class="ml-3 text-gray-700">Web Applications</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-chart-bar text-orange-600 w-6"></i>
+                            <span class="ml-3 text-gray-700">Data Analytics</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-database text-orange-600 w-6"></i>
+                            <span class="ml-3 text-gray-700">Data Engineering</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-16 gradient-text">Services</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="w-16 h-16 hero-gradient rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-robot text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4">AI Automation</h3>
+                    <p class="text-gray-600">
+                        Implementing intelligent automation solutions using cutting-edge AI technologies 
+                        to streamline business processes and improve efficiency.
+                    </p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="w-16 h-16 hero-gradient rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-laptop-code text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4">Web Application Development</h3>
+                    <p class="text-gray-600">
+                        Building robust, scalable web applications with modern frameworks 
+                        and best practices for optimal user experience.
+                    </p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="w-16 h-16 hero-gradient rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-chart-line text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4">Data Analytics</h3>
+                    <p class="text-gray-600">
+                        Transforming raw data into actionable insights through advanced analytics 
+                        and visualization techniques.
+                    </p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="w-16 h-16 hero-gradient rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-database text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4">Data Engineering</h3>
+                    <p class="text-gray-600">
+                        Designing and implementing efficient data pipelines and infrastructure 
+                        for reliable data processing and storage.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section id="portfolio" class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-16 gradient-text">Portfolio</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop" 
+                         alt="Project 1" class="w-full h-64 object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+                            <h3 class="text-xl font-semibold mb-2">E-Commerce Platform</h3>
+                            <p class="text-sm">Modern online shopping experience with AI recommendations</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop" 
+                         alt="Project 2" class="w-full h-64 object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+                            <h3 class="text-xl font-semibold mb-2">Task Management App</h3>
+                            <p class="text-sm">Collaborative project management tool with real-time updates</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
+                    <img src="https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop" 
+                         alt="Project 3" class="w-full h-64 object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+                            <h3 class="text-xl font-semibold mb-2">Analytics Dashboard</h3>
+                            <p class="text-sm">Data visualization platform with interactive charts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-16 gradient-text">Get In Touch</h2>
+            <div class="max-w-4xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-6">Let's Connect</h3>
+                        <p class="text-gray-600 mb-8">
+                            I'm always interested in hearing about new projects and opportunities. 
+                            Whether you have a question or just want to say hi, feel free to reach out!
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-orange-600 w-6"></i>
+                                <span class="ml-3 text-gray-700">info@samabrains.com</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-orange-600 w-6"></i>
+                                <span class="ml-3 text-gray-700">+256 759 910 596</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-orange-600 w-6"></i>
+                                <span class="ml-3 text-gray-700">Kampala, Uganda</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-4 mt-8">
+                            <a href="https://www.linkedin.com/in/robert-ssebambulidde/" target="_blank" class="w-12 h-12 hero-gradient rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                            <a href="#" class="w-12 h-12 hero-gradient rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" class="w-12 h-12 hero-gradient rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div>
+                        <form id="contact-form" class="space-y-6">
+                            <div>
+                                <input type="text" placeholder="Your Name" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-600 transition-colors">
+                            </div>
+                            <div>
+                                <input type="email" placeholder="Your Email" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-600 transition-colors">
+                            </div>
+                            <div>
+                                <textarea placeholder="Your Message" rows="5" 
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-600 transition-colors resize-none"></textarea>
+                            </div>
+                            <button type="submit" class="w-full hero-gradient text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="container mx-auto px-6">
+            <div class="text-center">
+                <p>&copy; 2024 SamaBrains Solutions. All rights reserved.</p>
+                <p class="mt-2 text-gray-400">Built with passion and modern technologies</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
