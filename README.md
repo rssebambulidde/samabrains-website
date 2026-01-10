@@ -108,6 +108,37 @@ Modify these colors to match your brand preferences.
 
 This project is configured for Railway deployment. See `DEPLOYMENT.md` for detailed instructions.
 
+## Auto-Tracking Changes
+
+To automatically track and commit changes:
+
+### Windows (Quick):
+```bash
+# Run this batch file to track changes
+./track-changes.bat
+```
+
+### Linux/Mac (Auto-commit):
+```bash
+# Make script executable
+chmod +x auto-commit.sh
+
+# Run auto-commit (will commit and push if changes exist)
+./auto-commit.sh
+```
+
+### Manual Tracking:
+```bash
+# Add all changes
+git add -A
+
+# Commit with message
+git commit -m "Your change description"
+
+# Push to GitHub
+git push origin main
+```
+
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
