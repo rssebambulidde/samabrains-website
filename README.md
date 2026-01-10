@@ -54,6 +54,9 @@ personal-website/
 ├── index.html          # Main HTML file
 ├── script.js           # JavaScript functionality
 ├── README.md           # Project documentation
+├── railway.json        # Railway deployment config
+├── Procfile           # Process definition for Railway
+├── DEPLOYMENT.md      # Deployment instructions
 └── assets/             # Images and static files (if needed)
 ```
 
@@ -74,7 +77,7 @@ The primary gradient is defined in the CSS:
 
 ```css
 .gradient-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
 }
 ```
 
@@ -100,6 +103,10 @@ Modify these colors to match your brand preferences.
 - Throttled scroll events for better performance
 - Minimal JavaScript footprint
 - CSS animations using transforms for GPU acceleration
+
+## Deployment
+
+This project is configured for Railway deployment. See `DEPLOYMENT.md` for detailed instructions.
 
 ## License
 
