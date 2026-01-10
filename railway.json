@@ -4,7 +4,7 @@
     "buildCommand": "echo 'No build needed'"
   },
   "deploy": {
-    "startCommand": "python3 -m http.server 8000 --bind 0.0.0.0",
+    "startCommand": "python -m http.server 8000 --bind 0.0.0.0",
     "healthcheckPath": "/",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
