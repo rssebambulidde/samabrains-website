@@ -1,6 +1,7 @@
 {
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "echo 'No build needed'"
   },
   "deploy": {
     "startCommand": "python3 -m http.server 8000 --bind 0.0.0.0",
