@@ -1,1 +1,1 @@
-web: nginx -g 'daemon off;' -c /app/nginx.conf
+web: nginx -c /app/nginx.conf
