@@ -305,6 +305,58 @@ window.addEventListener('error', (e) => {
     }
 }, true);
 
+// Dark Mode Toggle
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+const darkModeIcon = document.getElementById('dark-mode-icon');
+const htmlElement = document.documentElement;
+
+// Check for saved theme preference or default to light mode
+const currentTheme = localStorage.getItem('theme') || 'light';
+if (currentTheme === 'dark') {
+    htmlElement.classList.add('dark-mode');
+    darkModeIcon.classList.remove('fa-moon');
+    darkModeIcon.classList.add('fa-sun');
+}
+
+if (darkModeToggle) {
+    darkModeToggle.addEventListener('click', () => {
+        htmlElement.classList.toggle('dark-mode');
+        
+        // Update icon
+        if (htmlElement.classList.contains('dark-mode')) {
+            darkModeIcon.classList.remove('fa-moon');
+            darkModeIcon.classList.add('fa-sun');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            darkModeIcon.classList.remove('fa-sun');
+            darkModeIcon.classList.add('fa-moon');
+            localStorage.setItem('theme', 'light');
+        }
+    });
+}
+
+// Back to Top Button
+const backToTopButton = document.getElementById('back-to-top');
+
+if (backToTopButton) {
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', throttle(() => {
+        if (window.pageYOffset > 300) {
+            backToTopButton.classList.add('visible');
+        } else {
+            backToTopButton.classList.remove('visible');
+        }
+    }, 100));
+    
+    // Smooth scroll to top when clicked
+    backToTopButton.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}
+
 // Initialize typing effect when page loads
 document.addEventListener('DOMContentLoaded', () => {
     // Check if required elements exist before initializing

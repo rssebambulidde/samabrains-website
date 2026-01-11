@@ -154,6 +154,98 @@
                 padding-right: 1rem;
             }
         }
+        
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #e5e5e5;
+        }
+        
+        .dark-mode .bg-white {
+            background-color: #2d2d2d !important;
+        }
+        
+        .dark-mode .bg-gray-50 {
+            background-color: #1a1a1a !important;
+        }
+        
+        .dark-mode .bg-gray-900 {
+            background-color: #0a0a0a !important;
+        }
+        
+        .dark-mode .text-gray-700 {
+            color: #d1d1d1 !important;
+        }
+        
+        .dark-mode .text-gray-600 {
+            color: #b3b3b3 !important;
+        }
+        
+        .dark-mode .text-gray-400 {
+            color: #808080 !important;
+        }
+        
+        .dark-mode .border-gray-300 {
+            border-color: #4a4a4a !important;
+        }
+        
+        .dark-mode nav {
+            background-color: rgba(26, 26, 26, 0.9) !important;
+        }
+        
+        .dark-mode .bg-white\/90 {
+            background-color: rgba(26, 26, 26, 0.9) !important;
+        }
+        
+        .dark-mode .bg-white\/95 {
+            background-color: rgba(26, 26, 26, 0.95) !important;
+        }
+        
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .back-to-top.visible {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+        }
+        
+        .back-to-top:active {
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 640px) {
+            .back-to-top {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 45px;
+                height: 45px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 smooth-scroll">
@@ -175,9 +267,15 @@
                     <a href="#portfolio" class="nav-link text-gray-700 hover:text-orange-600">Portfolio</a>
                     <a href="#contact" class="nav-link text-gray-700 hover:text-orange-600">Contact</a>
                 </div>
-                <button id="mobile-menu-btn" class="md:hidden text-gray-700" aria-label="Toggle mobile menu" aria-expanded="false">
-                    <i class="fas fa-bars text-2xl" aria-hidden="true"></i>
-                </button>
+                <div class="flex items-center space-x-4">
+                    <!-- Dark Mode Toggle -->
+                    <button id="dark-mode-toggle" class="text-gray-700 hover:text-orange-600 transition-colors" aria-label="Toggle dark mode">
+                        <i class="fas fa-moon text-xl" id="dark-mode-icon" aria-hidden="true"></i>
+                    </button>
+                    <button id="mobile-menu-btn" class="md:hidden text-gray-700" aria-label="Toggle mobile menu" aria-expanded="false">
+                        <i class="fas fa-bars text-2xl" aria-hidden="true"></i>
+                    </button>
+                </div>
             </div>
         </div>
         <!-- Mobile Menu -->
@@ -433,6 +531,11 @@
             </div>
         </div>
     </footer>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+    </button>
 
     <script src="script.js"></script>
 </body>
