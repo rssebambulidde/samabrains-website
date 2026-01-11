@@ -48,8 +48,13 @@ app.post('/api/send-email', async (req, res) => {
     console.error('BREVO_API_KEY environment variable is not set');
     return res.status(500).json({ 
       success: false,
-      message: 'Server configuration error' 
+      message: 'Server configuration error: BREVO_API_KEY is not set in Railway environment variables' 
     });
+  }
+
+  // Validate API key format (Brevo API keys are typically long alphanumeric strings)
+  if (brevoApiKey.length < 20) {
+    console.warn('BREVO_API_KEY seems too short. Brevo API keys are typically longer.');
   }
 
   try {
@@ -121,28 +126,50 @@ app.post('/api/send-email', async (req, res) => {
       })
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      // If response is not JSON, get text
+      const text = await response.text();
+      console.error('Brevo API non-JSON response:', text);
+      data = { message: text };
+    }
 
     if (!response.ok) {
-      console.error('Brevo API error:', data);
+      console.error('Brevo API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: data,
+        apiKeyPresent: !!brevoApiKey,
+        apiKeyLength: brevoApiKey ? brevoApiKey.length : 0,
+        apiKeyPrefix: brevoApiKey ? brevoApiKey.substring(0, 10) + '...' : 'none'
+      });
       
       if (response.status === 401) {
         return res.status(500).json({ 
           success: false,
-          message: 'Authentication failed' 
+          message: 'Authentication failed. Please check your Brevo API key in Railway environment variables.' 
         });
       }
       
       if (response.status === 402) {
         return res.status(500).json({ 
           success: false,
-          message: 'Email quota exceeded' 
+          message: 'Email quota exceeded. Please check your Brevo account limits.' 
+        });
+      }
+
+      if (response.status === 400) {
+        return res.status(500).json({ 
+          success: false,
+          message: data.message || 'Invalid request. Please check the form data.' 
         });
       }
 
       return res.status(500).json({ 
         success: false,
-        message: 'Failed to send email' 
+        message: data.message || `Failed to send email (Status: ${response.status})` 
       });
     }
 
