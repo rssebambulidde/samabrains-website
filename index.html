@@ -3,9 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SamaBrains Solutions - Smart Digital Solutions specializing in AI automation, web application development, data analytics, and data engineering services.">
+    <meta name="keywords" content="AI automation, web development, data analytics, data engineering, digital solutions, SamaBrains">
+    <meta name="author" content="SamaBrains Solutions">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://samabrains.com/">
+    <meta property="og:title" content="SamaBrains Solutions - Personal Website">
+    <meta property="og:description" content="Smart Digital Solutions - Specializing in AI automation, web application development, data analytics, and data engineering services.">
+    <meta property="og:image" content="https://samabrains.com/assets/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://samabrains.com/">
+    <meta property="twitter:title" content="SamaBrains Solutions - Personal Website">
+    <meta property="twitter:description" content="Smart Digital Solutions - Specializing in AI automation, web application development, data analytics, and data engineering services.">
+    <meta property="twitter:image" content="https://samabrains.com/assets/og-image.jpg">
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+    
     <title>SamaBrains Solutions - Personal Website</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    
+    <!-- Note: Tailwind CDN doesn't provide SRI hashes. Consider using a build process for production. -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -75,9 +106,27 @@
         .nav-link:hover::after {
             width: 100%;
         }
+        
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #ff6b35;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+        
+        .skip-link:focus {
+            top: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-50 smooth-scroll">
+    <!-- Skip to main content for accessibility -->
+    <a href="#home" class="skip-link">Skip to main content</a>
+    
     <!-- Navigation -->
     <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
         <div class="container mx-auto px-6 py-4">
@@ -90,8 +139,8 @@
                     <a href="#portfolio" class="nav-link text-gray-700 hover:text-orange-600">Portfolio</a>
                     <a href="#contact" class="nav-link text-gray-700 hover:text-orange-600">Contact</a>
                 </div>
-                <button id="mobile-menu-btn" class="md:hidden text-gray-700">
-                    <i class="fas fa-bars text-2xl"></i>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-700" aria-label="Toggle mobile menu" aria-expanded="false">
+                    <i class="fas fa-bars text-2xl" aria-hidden="true"></i>
                 </button>
             </div>
         </div>
@@ -140,7 +189,11 @@
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <div>
                     <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop&crop=face" 
-                         alt="Profile" class="rounded-2xl shadow-2xl w-full max-w-md mx-auto">
+                         alt="Professional profile photo of SamaBrains Solutions" 
+                         class="rounded-2xl shadow-2xl w-full max-w-md mx-auto"
+                         loading="lazy"
+                         width="500"
+                         height="500">
                 </div>
                 <div>
                     <h3 class="text-2xl font-semibold mb-4">Professional Profile</h3>
@@ -228,7 +281,11 @@
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
                     <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop" 
-                         alt="Project 1" class="w-full h-64 object-cover">
+                         alt="E-Commerce Platform project screenshot" 
+                         class="w-full h-64 object-cover"
+                         loading="lazy"
+                         width="400"
+                         height="300">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
                             <h3 class="text-xl font-semibold mb-2">E-Commerce Platform</h3>
@@ -238,7 +295,11 @@
                 </div>
                 <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
                     <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop" 
-                         alt="Project 2" class="w-full h-64 object-cover">
+                         alt="Task Management App project screenshot" 
+                         class="w-full h-64 object-cover"
+                         loading="lazy"
+                         width="400"
+                         height="300">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
                             <h3 class="text-xl font-semibold mb-2">Task Management App</h3>
@@ -248,7 +309,11 @@
                 </div>
                 <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
                     <img src="https://images.unsplash.com/photo-1551650975-87deedd944c3?w=400&h=300&fit=crop" 
-                         alt="Project 3" class="w-full h-64 object-cover">
+                         alt="Analytics Dashboard project screenshot" 
+                         class="w-full h-64 object-cover"
+                         loading="lazy"
+                         width="400"
+                         height="300">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
                             <h3 class="text-xl font-semibold mb-2">Analytics Dashboard</h3>
@@ -287,32 +352,38 @@
                             </div>
                         </div>
                         <div class="flex space-x-4 mt-8">
-                            <a href="https://www.linkedin.com/in/robert-ssebambulidde/" target="_blank" class="w-12 h-12 hero-gradient rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
-                                <i class="fab fa-linkedin-in"></i>
+                            <a href="https://www.linkedin.com/in/robert-ssebambulidde/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile" class="w-12 h-12 hero-gradient rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+                                <i class="fab fa-linkedin-in" aria-hidden="true"></i>
                             </a>
-                            <a href="#" class="w-12 h-12 hero-gradient rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
-                                <i class="fab fa-github"></i>
+                            <a href="#" aria-label="GitHub profile" class="w-12 h-12 hero-gradient rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+                                <i class="fab fa-github" aria-hidden="true"></i>
                             </a>
-                            <a href="#" class="w-12 h-12 hero-gradient rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
-                                <i class="fab fa-twitter"></i>
+                            <a href="#" aria-label="Twitter profile" class="w-12 h-12 hero-gradient rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+                                <i class="fab fa-twitter" aria-hidden="true"></i>
                             </a>
                         </div>
                     </div>
                     <div>
-                        <form id="contact-form" class="space-y-6">
+                        <form id="contact-form" class="space-y-6" method="POST">
                             <div>
-                                <input type="text" placeholder="Your Name" 
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-600 transition-colors">
+                                <label for="name" class="sr-only">Your Name</label>
+                                <input type="text" id="name" name="name" placeholder="Your Name" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-600 transition-colors"
+                                       aria-label="Your Name">
                             </div>
                             <div>
-                                <input type="email" placeholder="Your Email" 
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-600 transition-colors">
+                                <label for="email" class="sr-only">Your Email</label>
+                                <input type="email" id="email" name="email" placeholder="Your Email" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-600 transition-colors"
+                                       aria-label="Your Email">
                             </div>
                             <div>
-                                <textarea placeholder="Your Message" rows="5" 
-                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-600 transition-colors resize-none"></textarea>
+                                <label for="message" class="sr-only">Your Message</label>
+                                <textarea id="message" name="message" placeholder="Your Message" rows="5" required
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-600 transition-colors resize-none"
+                                          aria-label="Your Message"></textarea>
                             </div>
-                            <button type="submit" class="w-full hero-gradient text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                            <button type="submit" class="w-full hero-gradient text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity" aria-label="Send message">
                                 Send Message
                             </button>
                         </form>

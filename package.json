@@ -1,0 +1,26 @@
+{
+  "name": "samabrains-website",
+  "version": "1.0.0",
+  "description": "SamaBrains Solutions personal website with Brevo email integration",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "website",
+    "portfolio",
+    "brevo",
+    "email"
+  ],
+  "author": "SamaBrains Solutions",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

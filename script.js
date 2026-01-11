@@ -40,13 +40,17 @@ function typeEffect() {
     setTimeout(typeEffect, typingSpeed);
 }
 
-// Mobile Menu Toggle
+// Mobile Menu Toggle with accessibility improvements
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 const mobileMenu = document.getElementById('mobile-menu');
 
 if (mobileMenuBtn && mobileMenu) {
     mobileMenuBtn.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
+        const isHidden = mobileMenu.classList.toggle('hidden');
+        mobileMenuBtn.setAttribute('aria-expanded', !isHidden);
+        
+        // Update aria-label
+        mobileMenuBtn.setAttribute('aria-label', isHidden ? 'Open mobile menu' : 'Close mobile menu');
     });
     
     // Close mobile menu when clicking on a link
@@ -54,7 +58,19 @@ if (mobileMenuBtn && mobileMenu) {
     mobileLinks.forEach(link => {
         link.addEventListener('click', () => {
             mobileMenu.classList.add('hidden');
+            mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            mobileMenuBtn.setAttribute('aria-label', 'Open mobile menu');
         });
+    });
+    
+    // Close mobile menu on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !mobileMenu.classList.contains('hidden')) {
+            mobileMenu.classList.add('hidden');
+            mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            mobileMenuBtn.setAttribute('aria-label', 'Open mobile menu');
+            mobileMenuBtn.focus();
+        }
     });
 }
 
@@ -73,29 +89,80 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Navbar Background on Scroll
-window.addEventListener('scroll', () => {
-    const navbar = document.querySelector('nav');
-    if (window.scrollY > 50) {
-        navbar.classList.add('bg-white/95');
-        navbar.classList.remove('bg-white/90');
-    } else {
-        navbar.classList.add('bg-white/90');
-        navbar.classList.remove('bg-white/95');
+// Performance optimization: Throttle function
+function throttle(func, limit) {
+    let inThrottle;
+    return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+            func.apply(context, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
     }
-});
+}
 
-// Contact Form Handling
+// Consolidated scroll handler for all scroll-related functionality
+const handleScroll = throttle(() => {
+    const scrolled = window.pageYOffset;
+    
+    // Navbar Background on Scroll
+    const navbar = document.querySelector('nav');
+    if (navbar) {
+        if (scrolled > 50) {
+            navbar.classList.add('bg-white/95');
+            navbar.classList.remove('bg-white/90');
+        } else {
+            navbar.classList.add('bg-white/90');
+            navbar.classList.remove('bg-white/95');
+        }
+    }
+    
+    // Parallax Effect for Hero Section
+    const hero = document.querySelector('#home');
+    if (hero) {
+        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+    }
+    
+    // Active Navigation Link Highlighting
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    let current = '';
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (scrolled >= (sectionTop - 100)) {
+            current = section.getAttribute('id');
+        }
+    });
+    
+    navLinks.forEach(link => {
+        link.classList.remove('text-orange-600');
+        link.classList.add('text-gray-700');
+        if (link.getAttribute('href').slice(1) === current) {
+            link.classList.remove('text-gray-700');
+            link.classList.add('text-orange-600');
+        }
+    });
+}, 100);
+
+// Single scroll event listener
+window.addEventListener('scroll', handleScroll, { passive: true });
+
+// Contact Form Handling with Brevo integration
 const contactForm = document.getElementById('contact-form');
 if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
+    contactForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+        
         // Get form data
-        const formData = new FormData(this);
-        const name = this.querySelector('input[type="text"]').value;
-        const email = this.querySelector('input[type="email"]').value;
-        const message = this.querySelector('textarea').value;
+        const name = this.querySelector('#name').value.trim();
+        const email = this.querySelector('#email').value.trim();
+        const message = this.querySelector('#message').value.trim();
         
         // Basic validation
         if (!name || !email || !message) {
@@ -108,9 +175,46 @@ if (contactForm) {
             return;
         }
         
-        // Simulate form submission
-        showNotification('Message sent successfully! I\'ll get back to you soon.', 'success');
-        this.reset();
+        // Disable submit button and show loading state
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
+        
+        try {
+            // Send to your serverless function/backend endpoint
+            // Update this URL to match your deployment
+            // For Railway Functions: '/api/send-email'
+            // For separate backend: 'https://your-backend-url.com/api/send-email'
+            const endpoint = '/api/send-email';
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    message: message
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                showNotification('Message sent successfully! I\'ll get back to you soon.', 'success');
+                this.reset();
+            } else {
+                showNotification(data.message || 'There was an error sending your message. Please try again.', 'error');
+            }
+        } catch (error) {
+            console.error('Form submission error:', error);
+            showNotification('Network error. Please check your connection and try again.', 'error');
+        } finally {
+            // Re-enable submit button
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
+        }
     });
 }
 
@@ -178,14 +282,7 @@ document.querySelectorAll('section').forEach(section => {
     observer.observe(section);
 });
 
-// Parallax Effect for Hero Section
-window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('#home');
-    if (hero) {
-        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-    }
-});
+// Parallax effect is now handled in the consolidated scroll handler above
 
 // Add hover effect to cards
 document.querySelectorAll('.card-hover').forEach(card => {
@@ -198,59 +295,57 @@ document.querySelectorAll('.card-hover').forEach(card => {
     });
 });
 
+// Error handling for external resources
+window.addEventListener('error', (e) => {
+    if (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK') {
+        console.warn('Failed to load external resource:', e.target.src || e.target.href);
+        // Could show a fallback notification here if needed
+    }
+}, true);
+
 // Initialize typing effect when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    typeEffect();
+    // Check if required elements exist before initializing
+    if (document.getElementById('typed-text')) {
+        typeEffect();
+    }
     
     // Add loading animation
     document.body.classList.add('loaded');
 });
 
-// Active Navigation Link Highlighting
-window.addEventListener('scroll', () => {
-    const sections = document.querySelectorAll('section[id]');
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    let current = '';
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
-        if (window.pageYOffset >= (sectionTop - 100)) {
-            current = section.getAttribute('id');
-        }
-    });
-    
-    navLinks.forEach(link => {
-        link.classList.remove('text-orange-600');
-        link.classList.add('text-gray-700');
-        if (link.getAttribute('href').slice(1) === current) {
-            link.classList.remove('text-gray-700');
-            link.classList.add('text-orange-600');
-        }
-    });
-});
+// Active navigation link highlighting is now handled in the consolidated scroll handler above
 
-// Portfolio Image Modal (Optional Enhancement)
+// Portfolio Image Modal with accessibility improvements
 document.querySelectorAll('#portfolio img').forEach(img => {
     img.addEventListener('click', function() {
         // Create modal for larger image view
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-label', 'Image preview');
         modal.innerHTML = `
             <div class="relative max-w-4xl max-h-full">
                 <img src="${this.src}" alt="${this.alt}" class="max-w-full max-h-full rounded-lg">
-                <button class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300">
-                    <i class="fas fa-times"></i>
+                <button class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white rounded" aria-label="Close image preview">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
         `;
         
         document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        
+        // Focus the close button
+        const closeButton = modal.querySelector('button');
+        closeButton.focus();
         
         // Close modal on click
         modal.addEventListener('click', (e) => {
             if (e.target === modal || e.target.closest('button')) {
                 modal.remove();
+                document.body.style.overflow = ''; // Restore scrolling
             }
         });
         
@@ -258,6 +353,7 @@ document.querySelectorAll('#portfolio img').forEach(img => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
                 modal.remove();
+                document.body.style.overflow = ''; // Restore scrolling
                 document.removeEventListener('keydown', handleEscape);
             }
         };
@@ -265,21 +361,4 @@ document.querySelectorAll('#portfolio img').forEach(img => {
     });
 });
 
-// Performance optimization: Throttle scroll events
-function throttle(func, limit) {
-    let inThrottle;
-    return function() {
-        const args = arguments;
-        const context = this;
-        if (!inThrottle) {
-            func.apply(context, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    }
-}
-
-// Apply throttling to scroll events
-window.addEventListener('scroll', throttle(() => {
-    // Scroll-related functions here
-}, 100));
+// Throttle function is now defined at the top and used in consolidated scroll handler

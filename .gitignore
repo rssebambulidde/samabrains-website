@@ -15,6 +15,9 @@ build/
 .env.test.local
 .env.production.local
 
+# Brevo API key (keep this secure!)
+# Never commit your BREVO_API_KEY to version control
+
 # IDE
 .vscode/
 .idea/
