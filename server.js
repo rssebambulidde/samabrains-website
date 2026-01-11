@@ -4,7 +4,14 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+
+// Load dotenv only if .env file exists (for local development)
+// Railway provides environment variables directly, so dotenv is optional
+try {
+  require('dotenv').config();
+} catch (e) {
+  // dotenv not available or .env file doesn't exist - that's okay for production
+}
 
 const app = express();
 
