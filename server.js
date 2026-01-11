@@ -70,6 +70,32 @@ app.post('/api/send-email', async (req, res) => {
   });
 
   try {
+    // First, test the API key by getting account info
+    const testResponse = await fetch('https://api.brevo.com/v3/account', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'api-key': brevoApiKey
+      }
+    });
+
+    if (!testResponse.ok) {
+      const testData = await testResponse.json().catch(() => ({ message: 'Unknown error' }));
+      console.error('Brevo API key test failed:', {
+        status: testResponse.status,
+        statusText: testResponse.statusText,
+        data: testData
+      });
+      
+      if (testResponse.status === 401) {
+        return res.status(500).json({ 
+          success: false,
+          message: 'Brevo API key authentication failed. Please verify: 1) API key is correct, 2) Service was redeployed after adding the key, 3) IP address is authorized in Brevo settings.' 
+        });
+      }
+    }
+
+    // If test passes, send the email
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
