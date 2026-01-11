@@ -1,16 +1,13 @@
-// Simple Express server for Brevo email integration
-// Use this if you prefer a Node.js backend instead of serverless functions
-
+// Express server for Brevo email integration
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-// Load dotenv only if .env file exists (for local development)
-// Railway provides environment variables directly, so dotenv is optional
+// Load dotenv for local development (optional in production)
 try {
   require('dotenv').config();
 } catch (e) {
-  // dotenv not available or .env file doesn't exist - that's okay for production
+  // dotenv not available - that's okay for production
 }
 
 const app = express();

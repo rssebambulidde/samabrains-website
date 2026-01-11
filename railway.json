@@ -11,5 +11,5 @@
     "restartPolicyMaxRetries": 10,
     "port": 3000
   },
-  "comment": "Using Node.js Express server for Brevo email integration. Set BREVO_API_KEY and CONTACT_EMAIL environment variables in Railway dashboard. For static-only hosting, use Railway's static site service with the serverless function in api/send-email.js"
+  "comment": "Using Node.js Express server for Brevo email integration. Set BREVO_API_KEY and CONTACT_EMAIL environment variables in Railway dashboard."
 }

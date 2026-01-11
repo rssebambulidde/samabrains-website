@@ -75,11 +75,8 @@ personal-website/
 ├── README.md           # Project documentation
 ├── railway.json        # Railway deployment config
 ├── Procfile           # Process definition for Railway
-├── nginx.conf         # Nginx configuration with security headers
 ├── DEPLOYMENT.md      # Deployment instructions
 ├── BREVO_SETUP.md     # Brevo email integration guide
-├── api/
-│   └── send-email.js  # Serverless function for Brevo API
 ├── robots.txt         # Search engine crawler instructions
 ├── sitemap.xml        # Site structure for search engines
 ├── favicon.svg        # SVG favicon
