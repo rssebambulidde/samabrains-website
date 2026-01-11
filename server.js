@@ -114,8 +114,8 @@ app.post('/api/send-email', async (req, res) => {
       },
       body: JSON.stringify({
         sender: {
-          name: name,
-          email: email
+          name: 'SamaBrains Solutions',
+          email: contactEmail
         },
         to: [{
           email: contactEmail,
@@ -125,7 +125,7 @@ app.post('/api/send-email', async (req, res) => {
           email: email,
           name: name
         },
-        subject: `New Contact Form Submission from ${name}`,
+        subject: 'Contact SamaBrains',
         htmlContent: `
           <!DOCTYPE html>
           <html>

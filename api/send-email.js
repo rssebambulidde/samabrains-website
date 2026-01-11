@@ -53,8 +53,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         sender: {
-          name: name,
-          email: email
+          name: 'SamaBrains Solutions',
+          email: contactEmail
         },
         to: [
           {
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
           email: email,
           name: name
         },
-        subject: `New Contact Form Submission from ${name}`,
+        subject: 'Contact SamaBrains',
         htmlContent: `
           <!DOCTYPE html>
           <html>
