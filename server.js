@@ -88,9 +88,18 @@ app.post('/api/send-email', async (req, res) => {
       });
       
       if (testResponse.status === 401) {
+        const testData = await testResponse.json().catch(() => ({}));
+        let errorMessage = 'Brevo API key authentication failed. ';
+        
+        if (testData.message && testData.message.includes('unrecognised IP address')) {
+          errorMessage += 'IP address not authorized. Please go to https://app.brevo.com/security/authorised_ips and add Railway\'s IP addresses (or allow all IPs for testing).';
+        } else {
+          errorMessage += 'Please verify: 1) API key is correct, 2) Service was redeployed, 3) IP address is authorized in Brevo settings.';
+        }
+        
         return res.status(500).json({ 
           success: false,
-          message: 'Brevo API key authentication failed. Please verify: 1) API key is correct, 2) Service was redeployed after adding the key, 3) IP address is authorized in Brevo settings.' 
+          message: errorMessage
         });
       }
     }
@@ -186,9 +195,17 @@ app.post('/api/send-email', async (req, res) => {
       });
       
       if (response.status === 401) {
+        let errorMessage = 'Authentication failed. ';
+        
+        if (data.message && data.message.includes('unrecognised IP address')) {
+          errorMessage += 'IP address not authorized in Brevo. Go to https://app.brevo.com/security/authorised_ips to add Railway IPs.';
+        } else {
+          errorMessage += 'Please check your Brevo API key in Railway environment variables.';
+        }
+        
         return res.status(500).json({ 
           success: false,
-          message: 'Authentication failed. Please check your Brevo API key in Railway environment variables.' 
+          message: errorMessage
         });
       }
       
