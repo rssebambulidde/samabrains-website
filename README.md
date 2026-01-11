@@ -49,9 +49,17 @@ A beautiful, modern personal website built with HTML, TailwindCSS, and vanilla J
 
 ## Getting Started
 
+### Quick Start (Production)
 1. Clone or download the project files
 2. Open `index.html` in your web browser
 3. Or use a local server for better development experience
+
+### Development Workflow
+For testing changes before production, see:
+- **`QUICK_START.md`** - Fast 3-step setup
+- **`DEVELOPMENT.md`** - Complete development guide
+
+**Recommended:** Use a `development` branch with Railway preview deployments for safe testing.
 
 ### Using a Local Server
 
