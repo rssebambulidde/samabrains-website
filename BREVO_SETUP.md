@@ -11,10 +11,19 @@ The contact form is configured to use Brevo (formerly Sendinblue) for sending em
 
 ### Step 1: Get Your Brevo API Key
 
-1. Log in to your Brevo account
-2. Go to **Settings** → **API Keys**
-3. Create a new API key or copy an existing one
-4. **Important**: Keep this key secure and never expose it in client-side code
+**Important**: You need the **API Key**, NOT the SMTP credentials!
+
+1. Log in to your Brevo account at [app.brevo.com](https://app.brevo.com)
+2. Go to **Settings** → **SMTP & API**
+3. Click on the **"API keys & MCP"** tab (NOT the "SMTP" tab)
+4. You'll see your API keys listed here
+5. Either:
+   - **Copy an existing API key** (if you have one)
+   - **Create a new API key** by clicking "Generate a new API key"
+6. Copy the **entire** API key (it will be a long string like `xkeysib-...`)
+7. **Important**: Keep this key secure and never expose it in client-side code
+
+**Note**: The SMTP settings (SMTP server, port, login) shown in the "SMTP" tab are NOT needed for API integration. Those are only for sending emails via SMTP protocol (like using a mail client). We're using the REST API which only requires the API key.
 
 ### Step 2: Configure Your Backend/Serverless Function
 
