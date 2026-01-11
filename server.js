@@ -41,7 +41,8 @@ app.post('/api/send-email', async (req, res) => {
     });
   }
 
-  const brevoApiKey = process.env.BREVO_API_KEY;
+  // Get and trim API key (remove any whitespace)
+  let brevoApiKey = process.env.BREVO_API_KEY;
   const contactEmail = process.env.CONTACT_EMAIL || 'info@samabrains.com';
 
   if (!brevoApiKey) {
@@ -52,10 +53,21 @@ app.post('/api/send-email', async (req, res) => {
     });
   }
 
-  // Validate API key format (Brevo API keys are typically long alphanumeric strings)
+  // Trim whitespace from API key (common issue)
+  brevoApiKey = brevoApiKey.trim();
+
+  // Validate API key format
   if (brevoApiKey.length < 20) {
     console.warn('BREVO_API_KEY seems too short. Brevo API keys are typically longer.');
   }
+
+  // Log API key info for debugging (only first 15 chars for security)
+  console.log('Brevo API Key Info:', {
+    present: !!brevoApiKey,
+    length: brevoApiKey.length,
+    prefix: brevoApiKey.substring(0, 15) + '...',
+    startsWithXkeysib: brevoApiKey.startsWith('xkeysib-')
+  });
 
   try {
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -143,7 +155,8 @@ app.post('/api/send-email', async (req, res) => {
         data: data,
         apiKeyPresent: !!brevoApiKey,
         apiKeyLength: brevoApiKey ? brevoApiKey.length : 0,
-        apiKeyPrefix: brevoApiKey ? brevoApiKey.substring(0, 10) + '...' : 'none'
+        apiKeyPrefix: brevoApiKey ? brevoApiKey.substring(0, 15) + '...' : 'none',
+        apiKeyStartsWithXkeysib: brevoApiKey ? brevoApiKey.startsWith('xkeysib-') : false
       });
       
       if (response.status === 401) {
