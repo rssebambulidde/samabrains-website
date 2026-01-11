@@ -119,10 +119,12 @@ const handleScroll = throttle(() => {
         }
     }
     
-    // Parallax Effect for Hero Section
-    const hero = document.querySelector('#home');
-    if (hero) {
-        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+    // Parallax Effect for Hero Section (disabled on mobile for performance)
+    if (window.innerWidth > 768) {
+        const hero = document.querySelector('#home');
+        if (hero) {
+            hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+        }
     }
     
     // Active Navigation Link Highlighting

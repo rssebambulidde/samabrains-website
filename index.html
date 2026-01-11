@@ -22,9 +22,10 @@
     <meta property="twitter:image" content="https://samabrains.com/assets/og-image.jpg">
     
     <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.unsplash.com">
     
     <title>SamaBrains Solutions - Personal Website</title>
@@ -35,13 +36,15 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     
     <!-- Note: Tailwind CDN doesn't provide SRI hashes. Consider using a build process for production. -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <!-- Optimized Google Fonts loading -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"></noscript>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
         * {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
         .gradient-text {
@@ -121,6 +124,36 @@
         .skip-link:focus {
             top: 0;
         }
+        
+        /* Performance optimizations */
+        img {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+        
+        /* Reduce motion for users who prefer it */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Optimize rendering */
+        .card-hover {
+            will-change: transform;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 smooth-scroll">
@@ -132,8 +165,8 @@
         <div class="container mx-auto px-6 py-4">
             <div class="flex justify-between items-center">
                 <div>
-                    <div class="text-2xl font-bold gradient-text">SamaBrains</div>
-                    <div class="text-xs text-gray-600 -mt-1">Smart Digital Solutions</div>
+                    <div class="text-xl sm:text-2xl font-bold gradient-text">SamaBrains</div>
+                    <div class="text-xs sm:text-xs text-gray-600 -mt-1 hidden sm:block">Smart Digital Solutions</div>
                 </div>
                 <div class="hidden md:flex space-x-8">
                     <a href="#home" class="nav-link text-gray-700 hover:text-orange-600">Home</a>
@@ -163,13 +196,13 @@
     <section id="home" class="min-h-screen flex items-center justify-center pt-20 fade-in">
         <div class="container mx-auto px-6">
             <div class="text-center">
-                <h1 class="text-5xl md:text-7xl font-bold mb-6">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 px-4">
                     Hi, I'm <span class="gradient-text">SamaBrains Solutions</span>
                 </h1>
-                <div class="text-2xl md:text-3xl text-gray-600 mb-8">
+                <div class="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-600 mb-6 sm:mb-8 px-4">
                     <span id="typed-text"></span><span class="typing-effect"></span>
                 </div>
-                <p class="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
+                <p class="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto px-4">
                     Smart Digital Solutions - Specializing in AI automation, web application development, 
                     data analytics, and data engineering services to transform your business.
                 </p>
@@ -188,19 +221,20 @@
     <!-- About Section -->
     <section id="about" class="py-20 bg-white">
         <div class="container mx-auto px-6">
-            <h2 class="text-4xl font-bold text-center mb-16 gradient-text">About Me</h2>
-            <div class="grid md:grid-cols-2 gap-12 items-center">
-                <div>
+            <h2 class="text-3xl sm:text-4xl font-bold text-center mb-8 sm:mb-16 gradient-text px-4">About Me</h2>
+            <div class="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
+                <div class="order-2 md:order-1">
                     <img src="assets/profile-photo.jpg" 
                          alt="Professional profile photo of Robert Ssebambulidde - SamaBrains Solutions" 
                          class="rounded-2xl shadow-2xl w-full max-w-md mx-auto"
                          loading="lazy"
                          width="500"
-                         height="500">
+                         height="500"
+                         decoding="async">
                 </div>
-                <div>
-                    <h3 class="text-2xl font-semibold mb-4">Professional Profile</h3>
-                    <p class="text-gray-600 mb-6">
+                <div class="order-1 md:order-2 px-4 sm:px-0">
+                    <h3 class="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Professional Profile</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
                         I am a dedicated professional with expertise in creating innovative digital solutions. 
                         My journey in technology has been driven by a passion for solving complex problems 
                         and delivering exceptional user experiences.
@@ -231,14 +265,14 @@
     <!-- Services Section -->
     <section id="services" class="py-20 bg-gray-50">
         <div class="container mx-auto px-6">
-            <h2 class="text-4xl font-bold text-center mb-16 gradient-text">Services</h2>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="bg-white p-8 rounded-2xl shadow-lg card-hover">
-                    <div class="w-16 h-16 hero-gradient rounded-full flex items-center justify-center mb-6">
-                        <i class="fas fa-robot text-white text-2xl"></i>
+            <h2 class="text-3xl sm:text-4xl font-bold text-center mb-8 sm:mb-16 gradient-text px-4">Services</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 px-4 sm:px-0">
+                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg card-hover">
+                    <div class="w-12 h-12 sm:w-16 sm:h-16 hero-gradient rounded-full flex items-center justify-center mb-4 sm:mb-6">
+                        <i class="fas fa-robot text-white text-xl sm:text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-semibold mb-4">AI Automation</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">AI Automation</h3>
+                    <p class="text-sm sm:text-base text-gray-600">
                         Implementing intelligent automation solutions using cutting-edge AI technologies 
                         to streamline business processes and improve efficiency.
                     </p>
@@ -280,8 +314,8 @@
     <!-- Portfolio Section -->
     <section id="portfolio" class="py-20 bg-white">
         <div class="container mx-auto px-6">
-            <h2 class="text-4xl font-bold text-center mb-16 gradient-text">Portfolio</h2>
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <h2 class="text-3xl sm:text-4xl font-bold text-center mb-8 sm:mb-16 gradient-text px-4">Portfolio</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 px-4 sm:px-0">
                 <div class="group relative overflow-hidden rounded-2xl shadow-lg card-hover">
                     <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop" 
                          alt="E-Commerce Platform project screenshot" 
@@ -331,12 +365,12 @@
     <!-- Contact Section -->
     <section id="contact" class="py-20 bg-gray-50">
         <div class="container mx-auto px-6">
-            <h2 class="text-4xl font-bold text-center mb-16 gradient-text">Get In Touch</h2>
-            <div class="max-w-4xl mx-auto">
-                <div class="grid md:grid-cols-2 gap-12">
+            <h2 class="text-3xl sm:text-4xl font-bold text-center mb-8 sm:mb-16 gradient-text px-4">Get In Touch</h2>
+            <div class="max-w-4xl mx-auto px-4 sm:px-6">
+                <div class="grid md:grid-cols-2 gap-8 sm:gap-12">
                     <div>
-                        <h3 class="text-2xl font-semibold mb-6">Let's Connect</h3>
-                        <p class="text-gray-600 mb-8">
+                        <h3 class="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Let's Connect</h3>
+                        <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
                             I'm always interested in hearing about new projects and opportunities. 
                             Whether you have a question or just want to say hi, feel free to reach out!
                         </p>
