@@ -147,6 +147,16 @@ const handleScroll = throttle(() => {
             link.classList.add('text-orange-600');
         }
     });
+    
+    // Back to Top Button visibility
+    const backToTopButton = document.getElementById('back-to-top');
+    if (backToTopButton) {
+        if (scrolled > 300) {
+            backToTopButton.classList.add('visible');
+        } else {
+            backToTopButton.classList.remove('visible');
+        }
+    }
 }, 100);
 
 // Single scroll event listener
@@ -286,16 +296,7 @@ document.querySelectorAll('section').forEach(section => {
 
 // Parallax effect is now handled in the consolidated scroll handler above
 
-// Add hover effect to cards
-document.querySelectorAll('.card-hover').forEach(card => {
-    card.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-10px) scale(1.02)';
-    });
-    
-    card.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0) scale(1)';
-    });
-});
+// Card hover effects are handled by CSS (.card-hover:hover) for better performance
 
 // Error handling for external resources
 window.addEventListener('error', (e) => {
@@ -335,19 +336,10 @@ if (darkModeToggle) {
     });
 }
 
-// Back to Top Button
+// Back to Top Button click handler
 const backToTopButton = document.getElementById('back-to-top');
 
 if (backToTopButton) {
-    // Show/hide button based on scroll position
-    window.addEventListener('scroll', throttle(() => {
-        if (window.pageYOffset > 300) {
-            backToTopButton.classList.add('visible');
-        } else {
-            backToTopButton.classList.remove('visible');
-        }
-    }, 100));
-    
     // Smooth scroll to top when clicked
     backToTopButton.addEventListener('click', () => {
         window.scrollTo({
@@ -357,11 +349,17 @@ if (backToTopButton) {
     });
 }
 
-// Initialize typing effect when page loads
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
     // Check if required elements exist before initializing
     if (document.getElementById('typed-text')) {
         typeEffect();
+    }
+    
+    // Set dynamic copyright year
+    const yearElement = document.getElementById('current-year');
+    if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
     }
     
     // Add loading animation
