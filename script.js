@@ -351,6 +351,9 @@ if (backToTopButton) {
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
+    // Show page once DOM and styles are ready (prevents FOUC)
+    document.documentElement.classList.add('loaded');
+    
     // Check if required elements exist before initializing
     if (document.getElementById('typed-text')) {
         typeEffect();
