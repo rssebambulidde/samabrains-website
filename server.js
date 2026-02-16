@@ -1,6 +1,8 @@
 // Express server for Brevo email integration
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 
 // Load dotenv for local development (optional in production)
@@ -11,14 +13,78 @@ try {
 }
 
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Security middleware - helmet for security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+      imgSrc: ["'self'", "data:", "https://images.unsplash.com"],
+      connectSrc: ["'self'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
+// CORS - restrict to specific origins
+const allowedOrigins = [
+  'https://samabrains.com',
+  'https://www.samabrains.com',
+  'http://localhost:3000',
+  'http://localhost:8000',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:8000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      // In development, allow all origins
+      if (!isProduction) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
+  credentials: true
+}));
+
+// Rate limiting for email endpoint
+const emailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs
+  message: {
+    success: false,
+    message: 'Too many contact requests. Please try again in 15 minutes.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// General rate limiting
+const generalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // limit each IP to 100 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.use(generalLimiter);
+app.use(express.json({ limit: '10kb' })); // Limit body size
 app.use(express.static('.')); // Serve static files
 
-// Email endpoint
-app.post('/api/send-email', async (req, res) => {
+// Email endpoint with rate limiting
+app.post('/api/send-email', emailLimiter, async (req, res) => {
   const { name, email, message } = req.body;
 
   // Validate input
@@ -26,6 +92,14 @@ app.post('/api/send-email', async (req, res) => {
     return res.status(400).json({ 
       success: false,
       message: 'All fields are required' 
+    });
+  }
+
+  // Length validation
+  if (name.length > 100 || email.length > 100 || message.length > 5000) {
+    return res.status(400).json({ 
+      success: false,
+      message: 'Input too long' 
     });
   }
 
@@ -46,62 +120,20 @@ app.post('/api/send-email', async (req, res) => {
     console.error('BREVO_API_KEY environment variable is not set');
     return res.status(500).json({ 
       success: false,
-      message: 'Server configuration error: BREVO_API_KEY is not set in Railway environment variables' 
+      message: 'Server configuration error' 
     });
   }
 
   // Trim whitespace from API key (common issue)
   brevoApiKey = brevoApiKey.trim();
 
-  // Validate API key format
-  if (brevoApiKey.length < 20) {
-    console.warn('BREVO_API_KEY seems too short. Brevo API keys are typically longer.');
+  // Only log in development
+  if (!isProduction) {
+    console.log('Brevo API Key present:', !!brevoApiKey);
   }
 
-  // Log API key info for debugging (only first 15 chars for security)
-  console.log('Brevo API Key Info:', {
-    present: !!brevoApiKey,
-    length: brevoApiKey.length,
-    prefix: brevoApiKey.substring(0, 15) + '...',
-    startsWithXkeysib: brevoApiKey.startsWith('xkeysib-')
-  });
-
   try {
-    // First, test the API key by getting account info
-    const testResponse = await fetch('https://api.brevo.com/v3/account', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'api-key': brevoApiKey
-      }
-    });
-
-    if (!testResponse.ok) {
-      const testData = await testResponse.json().catch(() => ({ message: 'Unknown error' }));
-      console.error('Brevo API key test failed:', {
-        status: testResponse.status,
-        statusText: testResponse.statusText,
-        data: testData
-      });
-      
-      if (testResponse.status === 401) {
-        const testData = await testResponse.json().catch(() => ({}));
-        let errorMessage = 'Brevo API key authentication failed. ';
-        
-        if (testData.message && testData.message.includes('unrecognised IP address')) {
-          errorMessage += 'IP address not authorized. Please go to https://app.brevo.com/security/authorised_ips and add Railway\'s IP addresses (or allow all IPs for testing).';
-        } else {
-          errorMessage += 'Please verify: 1) API key is correct, 2) Service was redeployed, 3) IP address is authorized in Brevo settings.';
-        }
-        
-        return res.status(500).json({ 
-          success: false,
-          message: errorMessage
-        });
-      }
-    }
-
-    // If test passes, send the email
+    // Send the email
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
@@ -174,7 +206,6 @@ app.post('/api/send-email', async (req, res) => {
     try {
       data = await response.json();
     } catch (e) {
-      // If response is not JSON, get text
       const text = await response.text();
       console.error('Brevo API non-JSON response:', text);
       data = { message: text };
@@ -183,21 +214,16 @@ app.post('/api/send-email', async (req, res) => {
     if (!response.ok) {
       console.error('Brevo API error:', {
         status: response.status,
-        statusText: response.statusText,
-        data: data,
-        apiKeyPresent: !!brevoApiKey,
-        apiKeyLength: brevoApiKey ? brevoApiKey.length : 0,
-        apiKeyPrefix: brevoApiKey ? brevoApiKey.substring(0, 15) + '...' : 'none',
-        apiKeyStartsWithXkeysib: brevoApiKey ? brevoApiKey.startsWith('xkeysib-') : false
+        statusText: response.statusText
       });
       
       if (response.status === 401) {
         let errorMessage = 'Authentication failed. ';
         
         if (data.message && data.message.includes('unrecognised IP address')) {
-          errorMessage += 'IP address not authorized in Brevo. Go to https://app.brevo.com/security/authorised_ips to add Railway IPs.';
+          errorMessage += 'IP address not authorized in Brevo. Please contact the administrator.';
         } else {
-          errorMessage += 'Please check your Brevo API key in Railway environment variables.';
+          errorMessage += 'Please contact the administrator.';
         }
         
         return res.status(500).json({ 
@@ -209,20 +235,20 @@ app.post('/api/send-email', async (req, res) => {
       if (response.status === 402) {
         return res.status(500).json({ 
           success: false,
-          message: 'Email quota exceeded. Please check your Brevo account limits.' 
+          message: 'Email service temporarily unavailable. Please try again later.' 
         });
       }
 
       if (response.status === 400) {
         return res.status(500).json({ 
           success: false,
-          message: data.message || 'Invalid request. Please check the form data.' 
+          message: 'Invalid request. Please check your input.' 
         });
       }
 
       return res.status(500).json({ 
         success: false,
-        message: data.message || `Failed to send email (Status: ${response.status})` 
+        message: 'Failed to send email. Please try again later.' 
       });
     }
 
@@ -231,10 +257,10 @@ app.post('/api/send-email', async (req, res) => {
       message: 'Email sent successfully' 
     });
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sending email:', error.message);
     res.status(500).json({ 
       success: false,
-      message: 'An error occurred' 
+      message: 'An error occurred. Please try again later.' 
     });
   }
 });
@@ -259,24 +285,21 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${isProduction ? 'production' : 'development'}`);
   
-  // Check environment variables
+  // Check environment variables (minimal logging)
   const brevoKey = process.env.BREVO_API_KEY;
   const contactEmail = process.env.CONTACT_EMAIL;
   
   if (brevoKey) {
-    console.log(`✅ BREVO_API_KEY is set (${brevoKey.substring(0, 10)}...)`);
+    console.log('BREVO_API_KEY: configured');
   } else {
-    console.log(`❌ BREVO_API_KEY is NOT set - emails will not work!`);
+    console.log('BREVO_API_KEY: NOT SET - emails will not work!');
   }
   
   if (contactEmail) {
-    console.log(`✅ CONTACT_EMAIL is set: ${contactEmail}`);
+    console.log(`CONTACT_EMAIL: ${contactEmail}`);
   } else {
-    console.log(`⚠️  CONTACT_EMAIL is not set - using default: info@samabrains.com`);
-  }
-  
-  if (brevoKey && contactEmail) {
-    console.log(`✅ Email integration is ready!`);
+    console.log('CONTACT_EMAIL: using default (info@samabrains.com)');
   }
 });
