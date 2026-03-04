@@ -192,19 +192,13 @@ if (contactForm) {
         submitButton.textContent = 'Sending...';
 
         try {
-            // Determine backend URL based on current environment
-            const hostname = window.location.hostname;
-            let backendBaseUrl = '';
+            // Determine backend URL
+            // In development, fall back to localhost if the build script hasn't run. 
+            // In production/Cloudflare, this string is replaced with the real URL via environment variables.
+            let backendBaseUrl = '__BACKEND_URL__';
 
-            if (hostname === 'localhost' || hostname === '127.0.0.1') {
-                // Local Development
+            if (backendBaseUrl === '__BACKEND_URL__' || backendBaseUrl === '') {
                 backendBaseUrl = 'http://localhost:3000';
-            } else if (hostname.endsWith('.pages.dev')) {
-                // Cloudflare Preview / Development branch
-                backendBaseUrl = 'https://api-samabrains-dev.up.railway.app';
-            } else {
-                // Production (samabrains.com)
-                backendBaseUrl = 'https://api-samabrains-prod.up.railway.app';
             }
 
             const endpoint = `${backendBaseUrl}/api/send-email`;
