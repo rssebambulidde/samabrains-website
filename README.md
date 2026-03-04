@@ -47,32 +47,64 @@ A beautiful, modern personal website built with HTML, TailwindCSS, and vanilla J
 - **Font Awesome**: Icon library
 - **Google Fonts**: Inter font family
 
-## Getting Started
+## 🚀 Getting Started
 
-### Quick Start (Production)
-1. Clone or download the project files
-2. Open `index.html` in your web browser
-3. Or use a local server for better development experience
+The project is divided into two separate applications: a `frontend` and a `backend`.
 
-### Development Workflow
-For testing changes before production, see:
-- **`QUICK_START.md`** - Fast 3-step setup
-- **`DEVELOPMENT.md`** - Complete development guide
+### Prerequisites
+* Node.js (v18 or higher)
+* A [Brevo](https://www.brevo.com/) account (free tier is fine)
+* API Key from Brevo
 
-**Recommended:** Use a `development` branch with Railway preview deployments for safe testing.
-
-### Using a Local Server
+### 1. Backend Setup (API & Email Server)
+The backend requires your Brevo API credentials to send emails.
 
 ```bash
-# Using Python
-python -m http.server 8000
+# Navigate to the backend directory
+cd backend
 
-# Using Node.js (if you have http-server installed)
-npx http-server
+# Install dependencies
+npm install
 
-# Using Live Server in VS Code
-Right-click index.html -> Open with Live Server
+# Create environment file
+cp .env.example .env
 ```
+
+Edit the `.env` file and add your Brevo API key:
+```env
+BREVO_API_KEY=xkeysib-your-api-key-here
+CONTACT_EMAIL=your-email@example.com
+PORT=3000
+```
+
+Start the backend development server:
+```bash
+npm run dev
+```
+The server will start on `http://localhost:3000`.
+
+### 2. Frontend Setup (UI & Client)
+Open a **new terminal window**. The frontend is purely static HTML/CSS/JS.
+
+```bash
+# Navigate to the frontend directory
+cd frontend
+
+# Run any static static server. 
+# You can use npx serve (recommended) or python
+npx serve .
+# OR
+python -m http.server 8000
+```
+
+Visit `http://localhost:3000` (or `http://localhost:8000` if using Python) in your browser. The locally running frontend will automatically detect it's on localhost and send emails through your running backend (`http://localhost:3000`).
+
+---
+
+## 🏗️ Architecture
+
+- **Frontend (`/frontend`)**: Pure, blazing-fast HTML, CSS (Tailwind), and Vanilla JS.
+- **Backend (`/backend`)**: Node.js Express server acting as a secure proxy to the Brevo email API. Includes CORS protection, rate limiting, and security headers.
 
 ## File Structure
 
