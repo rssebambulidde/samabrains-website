@@ -5,8 +5,9 @@ const path = require('path');
 const backendUrl = process.env.VITE_BACKEND_URL;
 
 if (!backendUrl) {
-    console.warn('\x1b[33m%s\x1b[0m', '⚠️ WARNING: VITE_BACKEND_URL environment variable is not set. Defaulting to localhost fallback in script.js.');
-    process.exit(0);
+    console.error('\n\x1b[31m%s\x1b[0m', '❌ ERROR: VITE_BACKEND_URL environment variable is MISSING!');
+    console.error('\x1b[33m%s\x1b[0m\n', 'You must add VITE_BACKEND_URL in your Cloudflare Pages dashboard -> Settings -> Environment Variables, then retry the deployment.');
+    process.exit(1); // Fail the build to prevent shipping broken code
 }
 
 // Read the script file
