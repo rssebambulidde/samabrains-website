@@ -52,7 +52,8 @@ app.use(cors({
     }
 
     // Dynamically allow any Cloudflare Pages preview subdomain ending in .pages.dev
-    if (origin.endsWith('.pages.dev')) {
+    // This securely matches things like https://development.samabrains-website.pages.dev
+    if (origin && origin.endsWith('.pages.dev')) {
       return callback(null, true);
     }
 
