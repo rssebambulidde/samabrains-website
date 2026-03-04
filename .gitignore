@@ -44,3 +44,6 @@ coverage/
 tmp/
 temp/
 .cache/
+
+# Claude AI internal files
+.claude/
