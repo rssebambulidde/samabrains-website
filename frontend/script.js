@@ -192,14 +192,12 @@ if (contactForm) {
         submitButton.textContent = 'Sending...';
 
         try {
-            // Determine backend URL
-            // In development, fall back to localhost if the build script hasn't run. 
-            // In production/Cloudflare, this string is replaced with the real URL via environment variables.
-            let backendBaseUrl = '__BACKEND_URL__';
-
-            if (backendBaseUrl === '__BACKEND_URL__' || backendBaseUrl === '') {
-                backendBaseUrl = 'http://localhost:3000';
-            }
+            // Determine backend URL.
+            // window.BACKEND_URL is set by config.js, which is generated at build time by build.js.
+            // Falls back to localhost when running locally without the Cloudflare build step.
+            const backendBaseUrl = (window.BACKEND_URL && window.BACKEND_URL !== '')
+                ? window.BACKEND_URL
+                : 'http://localhost:3000';
 
             const endpoint = `${backendBaseUrl}/api/send-email`;
 
