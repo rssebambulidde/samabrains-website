@@ -74,6 +74,50 @@ if (mobileMenuBtn && mobileMenu) {
     });
 }
 
+// Products Dropdown (Desktop)
+const productsDropdown = document.getElementById('products-dropdown');
+const productsBtn = document.getElementById('products-btn');
+
+if (productsDropdown && productsBtn) {
+    productsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = productsDropdown.classList.toggle('open');
+        productsBtn.setAttribute('aria-expanded', isOpen);
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!productsDropdown.contains(e.target)) {
+            productsDropdown.classList.remove('open');
+            productsBtn.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && productsDropdown.classList.contains('open')) {
+            productsDropdown.classList.remove('open');
+            productsBtn.setAttribute('aria-expanded', 'false');
+            productsBtn.focus();
+        }
+    });
+}
+
+// Mobile Products Accordion
+const mobileProductsBtn = document.getElementById('mobile-products-btn');
+const mobileProductsList = document.getElementById('mobile-products-list');
+const mobileProductsChevron = document.getElementById('mobile-products-chevron');
+
+if (mobileProductsBtn && mobileProductsList) {
+    mobileProductsBtn.addEventListener('click', () => {
+        const isOpen = mobileProductsList.classList.toggle('open');
+        mobileProductsBtn.setAttribute('aria-expanded', isOpen);
+        if (mobileProductsChevron) {
+            mobileProductsChevron.style.transform = isOpen ? 'rotate(180deg)' : '';
+        }
+    });
+}
+
 // Smooth Scrolling for Navigation Links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -142,7 +186,8 @@ const handleScroll = throttle(() => {
     navLinks.forEach(link => {
         link.classList.remove('text-orange-600');
         link.classList.add('text-gray-700');
-        if (link.getAttribute('href').slice(1) === current) {
+        const href = link.getAttribute('href');
+        if (href && href.slice(1) === current) {
             link.classList.remove('text-gray-700');
             link.classList.add('text-orange-600');
         }

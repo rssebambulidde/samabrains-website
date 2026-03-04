@@ -144,6 +144,131 @@
             width: 100%;
         }
 
+        /* Products Dropdown */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+        }
+
+        .dropdown-toggle .chevron {
+            font-size: 0.65rem;
+            transition: transform 0.25s ease;
+            display: inline-block;
+        }
+
+        .dropdown.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 220px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            padding: 8px;
+            z-index: 100;
+            animation: dropdownFadeIn 0.2s ease;
+        }
+
+        .dark-mode .dropdown-menu {
+            background: #2d2d2d;
+            border-color: #444;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .dropdown.open .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: #374151;
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .dark-mode .dropdown-item {
+            color: #d1d1d1;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.1));
+            color: #ff6b35;
+        }
+
+        .dropdown-item .item-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .dropdown-item .item-text .item-name {
+            display: block;
+            font-weight: 600;
+        }
+
+        .dropdown-item .item-text .item-desc {
+            display: block;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 1px;
+        }
+
+        /* Mobile Products accordion */
+        .mobile-products-list {
+            display: none;
+            padding-left: 1rem;
+            margin-top: 0.5rem;
+            border-left: 2px solid #ff6b35;
+        }
+
+        .mobile-products-list.open {
+            display: block;
+        }
+
         .skip-link {
             position: absolute;
             top: -40px;
@@ -296,11 +421,28 @@
                     <div class="text-xl sm:text-2xl font-bold gradient-text">SamaBrains</div>
                     <div class="text-xs sm:text-xs text-gray-600 -mt-1 hidden sm:block">Smart Digital Solutions</div>
                 </div>
-                <div class="hidden md:flex space-x-8">
+                <div class="hidden md:flex space-x-8 items-center">
                     <a href="#home" class="nav-link text-gray-700 hover:text-orange-600">Home</a>
                     <a href="#about" class="nav-link text-gray-700 hover:text-orange-600">About</a>
                     <a href="#services" class="nav-link text-gray-700 hover:text-orange-600">Services</a>
                     <a href="#portfolio" class="nav-link text-gray-700 hover:text-orange-600">Portfolio</a>
+                    <!-- Products Dropdown -->
+                    <div class="dropdown" id="products-dropdown">
+                        <button class="dropdown-toggle nav-link text-gray-700 hover:text-orange-600" id="products-btn"
+                            aria-haspopup="true" aria-expanded="false">
+                            Products <span class="chevron">&#9660;</span>
+                        </button>
+                        <div class="dropdown-menu" role="menu" aria-label="Products">
+                            <a href="https://queryai.samabrains.com" target="_blank" rel="noopener noreferrer"
+                                class="dropdown-item" role="menuitem">
+                                <span class="item-icon"><i class="fas fa-brain" aria-hidden="true"></i></span>
+                                <span class="item-text">
+                                    <span class="item-name">QueryAI</span>
+                                    <span class="item-desc">AI Fact Research Assistant</span>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
                     <a href="#contact" class="nav-link text-gray-700 hover:text-orange-600">Contact</a>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -323,6 +465,21 @@
                 <a href="#about" class="block text-gray-700 hover:text-orange-600">About</a>
                 <a href="#services" class="block text-gray-700 hover:text-orange-600">Services</a>
                 <a href="#portfolio" class="block text-gray-700 hover:text-orange-600">Portfolio</a>
+                <!-- Mobile Products Accordion -->
+                <div>
+                    <button id="mobile-products-btn"
+                        class="flex items-center justify-between w-full text-gray-700 hover:text-orange-600 font-medium"
+                        aria-expanded="false">
+                        Products <span id="mobile-products-chevron"
+                            class="text-xs transition-transform duration-200">&#9660;</span>
+                    </button>
+                    <div id="mobile-products-list" class="mobile-products-list">
+                        <a href="https://queryai.samabrains.com" target="_blank" rel="noopener noreferrer"
+                            class="flex items-center gap-3 py-2 text-gray-700 hover:text-orange-600 text-sm">
+                            <i class="fas fa-brain text-orange-500"></i> QueryAI
+                        </a>
+                    </div>
+                </div>
                 <a href="#contact" class="block text-gray-700 hover:text-orange-600">Contact</a>
             </div>
         </div>
