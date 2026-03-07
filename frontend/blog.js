@@ -305,13 +305,12 @@ function renderSinglePost(result) {
 
     // Table of Contents + Rich Text rendering
     let htmlContent = '<p>No content available.</p>';
-    let tocHtml = '';
+    let toc = null;
     if (fields.content && fields.content.content) {
-        const toc = generateTableOfContents(fields.content.content);
+        toc = generateTableOfContents(fields.content.content);
         const headingIds = toc ? toc.headingIds : null;
         const processedNodes = mergeConsecutiveCodeParagraphs(fields.content.content);
         htmlContent = renderRichText(processedNodes, headingIds);
-        if (toc) tocHtml = toc.html;
     }
 
     let formattedDate = 'Recent';
@@ -360,7 +359,7 @@ function renderSinglePost(result) {
                 <img src="${imageUrl}" alt="${title}" loading="lazy" class="w-full h-auto object-cover max-h-[500px]">
             </div>
 
-            ${tocHtml}
+            ${toc ? toc.mobileHtml : ''}
 
             <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed mx-auto">
                 ${htmlContent}
@@ -385,10 +384,17 @@ function renderSinglePost(result) {
         </article>
     `;
 
-    // ToC toggle
-    const tocToggle = document.getElementById('toc-toggle');
-    const tocList = document.getElementById('toc-list');
-    const tocChevron = document.querySelector('.toc-chevron');
+    // Sidebar ToC (desktop)
+    const sidebarInner = document.getElementById('toc-sidebar-inner');
+    if (sidebarInner && toc) {
+        sidebarInner.innerHTML = toc.sidebarHtml;
+        initTocScrollSpy(toc.headingIds);
+    }
+
+    // Mobile ToC toggle
+    const tocToggle = document.getElementById('toc-toggle-mobile');
+    const tocList = document.getElementById('toc-list-mobile');
+    const tocChevron = document.querySelector('.toc-chevron-mobile');
     if (tocToggle && tocList) {
         tocToggle.addEventListener('click', () => {
             const isExpanded = tocToggle.getAttribute('aria-expanded') === 'true';
@@ -400,6 +406,29 @@ function renderSinglePost(result) {
 
     // Syntax highlighting
     if (window.Prism) Prism.highlightAll();
+}
+
+function initTocScrollSpy(headingIds) {
+    if (!headingIds || headingIds.size === 0) return;
+
+    const ids = Array.from(headingIds.values());
+    const links = document.querySelectorAll('#toc-sidebar-inner a[href^="#"]');
+    if (links.length === 0) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                links.forEach(link => link.classList.remove('toc-active'));
+                const activeLink = document.querySelector(`#toc-sidebar-inner a[href="#${entry.target.id}"]`);
+                if (activeLink) activeLink.classList.add('toc-active');
+            }
+        });
+    }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
+
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) observer.observe(el);
+    });
 }
 
 // --- Table of Contents ---
@@ -420,23 +449,42 @@ function generateTableOfContents(nodes) {
     if (headings.length < 2) return null;
 
     const minLevel = Math.min(...headings.map(h => h.level));
-    const tocItems = headings.map(h => {
+
+    const tocItemsSidebar = headings.map(h => {
+        const indent = (h.level - minLevel) * 12;
+        return `<li style="padding-left: ${indent}px">
+            <a href="#${h.id}" class="block py-1.5 text-[13px] text-gray-500 hover:text-orange-600 transition-colors border-l-2 border-transparent hover:border-orange-500 pl-3 leading-snug">${h.text}</a>
+        </li>`;
+    }).join('');
+
+    const tocItemsMobile = headings.map(h => {
         const indent = (h.level - minLevel) * 16;
         return `<li style="padding-left: ${indent}px">
             <a href="#${h.id}" class="block py-1.5 text-sm text-gray-600 hover:text-orange-600 transition-colors border-l-2 border-transparent hover:border-orange-500 pl-3">${h.text}</a>
         </li>`;
     }).join('');
 
-    const html = `
-        <nav class="toc-container bg-gray-50 rounded-2xl p-6 mb-10 border border-gray-100" aria-label="Table of Contents">
-            <button class="flex items-center justify-between w-full text-left" id="toc-toggle" aria-expanded="true">
-                <h2 class="text-lg font-bold text-gray-900 m-0">
+    const sidebarHtml = `
+        <nav class="toc-sidebar-nav" aria-label="Table of Contents">
+            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
+                <i class="fas fa-list-ul mr-2 text-orange-500"></i>On this page
+            </h3>
+            <ul class="space-y-0.5 list-none ml-0">
+                ${tocItemsSidebar}
+            </ul>
+        </nav>
+    `;
+
+    const mobileHtml = `
+        <nav class="toc-mobile bg-gray-50 rounded-2xl p-6 mb-10 border border-gray-100 lg:hidden" aria-label="Table of Contents">
+            <button class="flex items-center justify-between w-full text-left" id="toc-toggle-mobile" aria-expanded="false">
+                <h3 class="text-lg font-bold text-gray-900 m-0">
                     <i class="fas fa-list-ul mr-2 text-orange-500"></i>Table of Contents
-                </h2>
-                <i class="fas fa-chevron-up text-gray-400 toc-chevron transition-transform"></i>
+                </h3>
+                <i class="fas fa-chevron-down text-gray-400 toc-chevron-mobile transition-transform"></i>
             </button>
-            <ul class="mt-4 space-y-1 list-none ml-0" id="toc-list">
-                ${tocItems}
+            <ul class="mt-4 space-y-1 list-none ml-0" id="toc-list-mobile" style="display: none;">
+                ${tocItemsMobile}
             </ul>
         </nav>
     `;
@@ -444,7 +492,7 @@ function generateTableOfContents(nodes) {
     const headingIds = new Map();
     headings.forEach(h => headingIds.set(h.text, h.id));
 
-    return { html, headingIds };
+    return { sidebarHtml, mobileHtml, headingIds };
 }
 
 // --- Rich Text Rendering ---

@@ -394,16 +394,33 @@
             font-size: inherit;
         }
 
-        /* Table of Contents */
-        .toc-container { transition: all 0.3s ease; }
-        .toc-container h2 { margin: 0; }
-        .toc-container ul { margin: 0; padding: 0; }
-        .dark-mode .toc-container {
+        /* Table of Contents - Sidebar */
+        .toc-sidebar-nav { transition: all 0.3s ease; }
+        .toc-sidebar-nav h3 { margin: 0; }
+        .toc-sidebar-nav ul { margin: 0; padding: 0; }
+        .toc-sidebar-nav a.toc-active {
+            color: #ff6b35;
+            border-color: #ff6b35;
+            font-weight: 600;
+        }
+        .dark-mode .toc-sidebar-nav {
             background-color: #252525 !important;
             border-color: #4a4a4a !important;
         }
-        .dark-mode .toc-container a { color: #b3b3b3; }
-        .dark-mode .toc-container a:hover { color: #ff8a65; border-color: #ff8a65; }
+        .dark-mode .toc-sidebar-nav a { color: #b3b3b3; }
+        .dark-mode .toc-sidebar-nav a:hover,
+        .dark-mode .toc-sidebar-nav a.toc-active { color: #ff8a65; border-color: #ff8a65; }
+
+        /* Mobile ToC (inline, collapsible) */
+        .toc-mobile { transition: all 0.3s ease; }
+        .toc-mobile h3 { margin: 0; }
+        .toc-mobile ul { margin: 0; padding: 0; }
+        .dark-mode .toc-mobile {
+            background-color: #252525 !important;
+            border-color: #4a4a4a !important;
+        }
+        .dark-mode .toc-mobile a { color: #b3b3b3; }
+        .dark-mode .toc-mobile a:hover { color: #ff8a65; border-color: #ff8a65; }
 
         /* Shimmer skeleton for lazy images */
         .img-skeleton {
@@ -501,17 +518,25 @@
 
     <!-- Post Article Section -->
     <section class="pt-32 pb-20 bg-white min-h-screen">
-        <div class="container mx-auto px-6 max-w-3xl">
+        <div class="container mx-auto px-6 max-w-6xl">
             <a href="blog.html"
                 class="text-orange-600 hover:underline font-medium mb-8 inline-flex items-center gap-2 transition-colors">
                 <i class="fas fa-arrow-left"></i> Back to Blog
             </a>
 
-            <div id="post-content">
-                <div class="text-center py-20 text-gray-500">
-                    <i class="fas fa-circle-notch fa-spin text-3xl mb-4 text-orange-500"></i>
-                    <p>Loading article from CMS...</p>
+            <div class="lg:flex lg:gap-10">
+                <!-- Main Content -->
+                <div class="lg:flex-1 lg:max-w-3xl" id="post-content">
+                    <div class="text-center py-20 text-gray-500">
+                        <i class="fas fa-circle-notch fa-spin text-3xl mb-4 text-orange-500"></i>
+                        <p>Loading article from CMS...</p>
+                    </div>
                 </div>
+
+                <!-- Sidebar ToC (populated by blog.js) -->
+                <aside class="hidden lg:block lg:w-64 xl:w-72 flex-shrink-0" id="toc-sidebar">
+                    <div class="sticky top-28" id="toc-sidebar-inner"></div>
+                </aside>
             </div>
         </div>
     </section>
