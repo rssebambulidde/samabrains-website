@@ -123,7 +123,7 @@ function renderBlogFeed(posts) {
         if (!fields) return;
 
         // Safely extract data with fallbacks
-        const title = fields.title || 'Untitled Post';
+        const title = fields.title || fields.tittle || 'Untitled Post';
         const slug = fields.slug || '';
         const excerpt = fields.excerpt || 'Read more about this topic...';
 
@@ -188,7 +188,7 @@ function renderSinglePost(result) {
     const fields = postData.fields;
 
     // Safely extract data
-    const title = fields.title || 'Untitled Post';
+    const title = fields.title || fields.tittle || 'Untitled Post';
     const author = fields.author || 'SamaBrains Team';
 
     // Quick rendering of Contentful Rich Text.
