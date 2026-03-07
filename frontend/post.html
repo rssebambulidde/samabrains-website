@@ -525,6 +525,11 @@
             </a>
 
             <div class="lg:flex lg:gap-10">
+                <!-- Sidebar ToC (left side, populated by blog.js) -->
+                <aside class="hidden lg:block lg:w-64 xl:w-72 flex-shrink-0" id="toc-sidebar">
+                    <div class="sticky top-28" id="toc-sidebar-inner"></div>
+                </aside>
+
                 <!-- Main Content -->
                 <div class="lg:flex-1 lg:max-w-3xl" id="post-content">
                     <div class="text-center py-20 text-gray-500">
@@ -532,11 +537,6 @@
                         <p>Loading article from CMS...</p>
                     </div>
                 </div>
-
-                <!-- Sidebar ToC (populated by blog.js) -->
-                <aside class="hidden lg:block lg:w-64 xl:w-72 flex-shrink-0" id="toc-sidebar">
-                    <div class="sticky top-28" id="toc-sidebar-inner"></div>
-                </aside>
             </div>
         </div>
     </section>
