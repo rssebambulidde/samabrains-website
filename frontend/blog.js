@@ -398,7 +398,7 @@ function renderSinglePost(result) {
 
     // Re-initialize ShareThis for dynamically rendered content
     if (window.__sharethis__) {
-        window.__sharethis__.load('inline-share-buttons', {});
+        window.__sharethis__.initialize();
     }
 
     // Sidebar ToC (desktop)
