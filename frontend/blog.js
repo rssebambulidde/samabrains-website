@@ -352,19 +352,9 @@ function renderSinglePost(result) {
         ).join('')}</div>`
         : '';
 
-    // Build canonical share URL using clean path
+    // Build canonical share URL
     const slug = fields.slug || '';
     const canonicalUrl = `https://samabrains.com/blog/${slug}`;
-    const shareUrl = encodeURIComponent(canonicalUrl);
-
-    // Auto-generate hashtags from tags
-    const hashtags = tags.map(t => t.replace(/[^a-zA-Z0-9]/g, '')).filter(h => h.length > 0);
-    const hashtagText = hashtags.length > 0 ? '\n\n' + hashtags.map(h => `#${h}`).join(' ') : '';
-    const twitterHashtags = hashtags.length > 0 ? `&hashtags=${hashtags.join(',')}` : '';
-
-    // Share text includes title + excerpt
-    const twitterText = encodeURIComponent(`${title}\n\n${excerpt}`);
-    const whatsappText = encodeURIComponent(`*${title}*\n\n${excerpt}${hashtagText}\n\n${canonicalUrl}`);
 
     container.innerHTML = `
         <article class="fade-in">
@@ -397,27 +387,19 @@ function renderSinglePost(result) {
 
             <div class="mt-16 pt-8 border-t border-gray-200 text-center">
                 <p class="text-gray-600 font-medium mb-4">Share this article</p>
-                <div class="flex justify-center space-x-4">
-                    <button class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on LinkedIn"
-                        onclick="window.open('https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}', '_blank', 'width=600,height=600')">
-                        <i class="fab fa-linkedin-in"></i>
-                    </button>
-                    <button class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on X"
-                        onclick="window.open('https://x.com/intent/tweet?url=${shareUrl}&text=${twitterText}${twitterHashtags}', '_blank', 'width=600,height=400')">
-                        <i class="fab fa-x-twitter"></i>
-                    </button>
-                    <button class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on WhatsApp"
-                        onclick="window.open('https://wa.me/?text=${whatsappText}', '_blank', 'width=600,height=600')">
-                        <i class="fab fa-whatsapp text-lg"></i>
-                    </button>
-                    <button class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Copy link"
-                        onclick="navigator.clipboard.writeText('${canonicalUrl}'); this.innerHTML='<i class=\\'fas fa-check\\'></i>'; setTimeout(() => this.innerHTML='<i class=\\'fas fa-link\\'></i>', 2000);">
-                        <i class="fas fa-link"></i>
-                    </button>
-                </div>
+                <div class="sharethis-inline-share-buttons"
+                    data-url="${canonicalUrl}"
+                    data-title="${title}"
+                    data-image="${imageUrl}"
+                    data-description="${excerpt}"></div>
             </div>
         </article>
     `;
+
+    // Re-initialize ShareThis for dynamically rendered content
+    if (window.__sharethis__) {
+        window.__sharethis__.load('inline-share-buttons', {});
+    }
 
     // Sidebar ToC (desktop)
     const sidebarInner = document.getElementById('toc-sidebar-inner');
