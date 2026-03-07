@@ -191,23 +191,10 @@ function renderSinglePost(result) {
     const title = fields.title || fields.tittle || 'Untitled Post';
     const author = fields.author || 'SamaBrains Team';
 
-    // Quick rendering of Contentful Rich Text.
-    // For production, you should use the official @contentful/rich-text-html-renderer library on the backend
-    // to securely parse this instead of stringifying here. But this will work for simple text blocks for now.
+    // Render Contentful Rich Text AST to HTML
     let htmlContent = '<p>No content available.</p>';
     if (fields.content && fields.content.content) {
-        // A very basic parser for Contentful's Rich Text AST to HTML
-        htmlContent = fields.content.content.map(node => {
-            if (node.nodeType === 'paragraph') {
-                const text = node.content.map(n => n.value).join('');
-                return `<p>${text}</p>`;
-            }
-            if (node.nodeType === 'heading-2') {
-                const text = node.content.map(n => n.value).join('');
-                return `<h2>${text}</h2>`;
-            }
-            return ''; // Ignore other types for this simple implementation
-        }).join('');
+        htmlContent = renderRichText(fields.content.content);
     }
 
     // Format date string
@@ -266,4 +253,69 @@ function renderSinglePost(result) {
             </div>
         </article>
     `;
+}
+
+/**
+ * Recursively renders Contentful Rich Text AST nodes to HTML.
+ */
+function renderRichText(nodes) {
+    return nodes.map(node => {
+        switch (node.nodeType) {
+            case 'paragraph':
+                return `<p>${renderInline(node.content)}</p>`;
+            case 'heading-1':
+                return `<h1>${renderInline(node.content)}</h1>`;
+            case 'heading-2':
+                return `<h2>${renderInline(node.content)}</h2>`;
+            case 'heading-3':
+                return `<h3>${renderInline(node.content)}</h3>`;
+            case 'heading-4':
+                return `<h4>${renderInline(node.content)}</h4>`;
+            case 'blockquote':
+                return `<blockquote>${renderRichText(node.content)}</blockquote>`;
+            case 'unordered-list':
+                return `<ul>${renderRichText(node.content)}</ul>`;
+            case 'ordered-list':
+                return `<ol>${renderRichText(node.content)}</ol>`;
+            case 'list-item':
+                return `<li>${renderRichText(node.content)}</li>`;
+            case 'hr':
+                return '<hr>';
+            case 'hyperlink':
+                return `<a href="${node.data.uri}" target="_blank" rel="noopener noreferrer">${renderInline(node.content)}</a>`;
+            default:
+                return '';
+        }
+    }).join('');
+}
+
+/**
+ * Renders inline text nodes with marks (bold, italic, code, underline).
+ */
+function renderInline(nodes) {
+    if (!nodes) return '';
+    return nodes.map(node => {
+        if (node.nodeType === 'hyperlink') {
+            return `<a href="${node.data.uri}" target="_blank" rel="noopener noreferrer">${renderInline(node.content)}</a>`;
+        }
+        let text = node.value || '';
+        if (!node.marks || node.marks.length === 0) return text;
+        node.marks.forEach(mark => {
+            switch (mark.type) {
+                case 'bold':
+                    text = `<strong>${text}</strong>`;
+                    break;
+                case 'italic':
+                    text = `<em>${text}</em>`;
+                    break;
+                case 'code':
+                    text = `<code>${text}</code>`;
+                    break;
+                case 'underline':
+                    text = `<u>${text}</u>`;
+                    break;
+            }
+        });
+        return text;
+    }).join('');
 }
