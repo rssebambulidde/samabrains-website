@@ -27,8 +27,14 @@ async function initBlog() {
     }
 
     if (isSinglePost) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const slug = urlParams.get('id');
+        // Support clean URLs: /blog/slug (primary) and legacy ?id=slug (fallback)
+        let slug = null;
+        const pathMatch = window.location.pathname.match(/^\/blog\/(.+?)(?:\/|$)/);
+        if (pathMatch) {
+            slug = pathMatch[1];
+        } else {
+            slug = new URLSearchParams(window.location.search).get('id');
+        }
 
         if (slug) {
             const result = await fetchSinglePostFromCMS(slug);
@@ -155,6 +161,11 @@ function initSearch() {
 
 // --- Tag Filters ---
 
+function getPostTags(fields) {
+    // Try multiple possible field names for tags
+    return fields?.tags || fields?.tag || fields?.categories || fields?.category || [];
+}
+
 function initTagFilters() {
     const container = document.getElementById('tag-filter-buttons');
     const wrapper = document.getElementById('tag-filters');
@@ -162,7 +173,12 @@ function initTagFilters() {
 
     const tagSet = new Set();
     (allPosts.items || []).forEach(post => {
-        (post.fields?.tags || []).forEach(tag => tagSet.add(tag));
+        const tags = getPostTags(post.fields);
+        if (Array.isArray(tags)) {
+            tags.forEach(tag => tagSet.add(tag));
+        } else if (typeof tags === 'string' && tags) {
+            tagSet.add(tags);
+        }
     });
 
     if (tagSet.size === 0) return;
@@ -170,7 +186,7 @@ function initTagFilters() {
     wrapper.classList.remove('hidden');
 
     let html = `<button class="tag-filter-btn active px-4 py-1.5 rounded-full text-sm font-medium bg-orange-500 text-white transition-colors" data-tag="all">All</button>`;
-    tagSet.forEach(tag => {
+    Array.from(tagSet).sort().forEach(tag => {
         html += `<button class="tag-filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-700 hover:bg-orange-100 hover:text-orange-700 transition-colors" data-tag="${tag}">${tag}</button>`;
     });
     container.innerHTML = html;
@@ -192,9 +208,10 @@ function initTagFilters() {
         } else {
             renderBlogFeed({
                 ...allPosts,
-                items: allPosts.items.filter(post =>
-                    (post.fields?.tags || []).includes(selectedTag)
-                )
+                items: allPosts.items.filter(post => {
+                    const tags = getPostTags(post.fields);
+                    return Array.isArray(tags) ? tags.includes(selectedTag) : tags === selectedTag;
+                })
             });
         }
     });
@@ -226,7 +243,8 @@ function renderBlogFeed(posts) {
         const title = fields.title || fields.tittle || 'Untitled Post';
         const slug = fields.slug || '';
         const excerpt = fields.excerpt || 'Read more about this topic...';
-        const tags = fields.tags || [];
+        const rawTags = getPostTags(fields);
+        const tags = Array.isArray(rawTags) ? rawTags : (rawTags ? [rawTags] : []);
 
         let formattedDate = 'Recent';
         if (fields.date) {
@@ -241,7 +259,7 @@ function renderBlogFeed(posts) {
         ).join('');
 
         const card = document.createElement('a');
-        card.href = `post.html?id=${slug}`;
+        card.href = `/blog/${slug}`;
         card.className = "group block bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 card-hover fade-in";
         card.style.animationDelay = `${index * 0.1}s`;
 
@@ -296,7 +314,8 @@ function renderSinglePost(result) {
     const title = fields.title || fields.tittle || 'Untitled Post';
     const author = fields.author || 'SamaBrains Team';
     const excerpt = fields.excerpt || title;
-    const tags = fields.tags || [];
+    const rawTags = getPostTags(fields);
+    const tags = Array.isArray(rawTags) ? rawTags : (rawTags ? [rawTags] : []);
 
     // Reading time
     const readingTime = calculateReadingTime(
@@ -321,9 +340,10 @@ function renderSinglePost(result) {
 
     const imageUrl = getImageUrl(fields.coverImage?.sys?.id, includes);
 
-    // SEO
+    // SEO — use canonical /blog/ URL
+    const canonicalPostUrl = `https://samabrains.com/blog/${fields.slug || ''}`;
     document.title = `${title} | SamaBrains Blog`;
-    updateMetaTags(title, excerpt, imageUrl, window.location.href);
+    updateMetaTags(title, excerpt, imageUrl, canonicalPostUrl);
 
     // Tag badges
     const tagBadgesHtml = tags.length > 0
@@ -332,9 +352,18 @@ function renderSinglePost(result) {
         ).join('')}</div>`
         : '';
 
-    // Share URLs
-    const shareUrl = encodeURIComponent(window.location.href);
+    // Build canonical share URL using clean path
+    const slug = fields.slug || '';
+    const canonicalUrl = `https://samabrains.com/blog/${slug}`;
+    const shareUrl = encodeURIComponent(canonicalUrl);
     const shareText = encodeURIComponent(title);
+
+    // Auto-generate hashtags from tags
+    const hashtags = tags.map(t => t.replace(/[^a-zA-Z0-9]/g, '')).filter(h => h.length > 0);
+    const twitterHashtags = hashtags.length > 0 ? `&hashtags=${hashtags.join(',')}` : '';
+
+    // WhatsApp share text: title + URL
+    const whatsappText = encodeURIComponent(`${title}\n\n${canonicalUrl}`);
 
     container.innerHTML = `
         <article class="fade-in">
@@ -346,7 +375,7 @@ function renderSinglePost(result) {
                 <h1 class="text-3xl md:text-5xl font-extrabold mb-6 text-gray-900 leading-tight">${title}</h1>
                 <div class="flex items-center justify-center text-gray-500 mb-8 border-b border-gray-100 pb-8">
                     <div class="flex items-center">
-                        <img src="assets/profile-photo.jpg" alt="${author}" class="w-12 h-12 rounded-full mr-4 object-cover shadow-sm border border-gray-100">
+                        <img src="/assets/profile-photo.jpg" alt="${author}" class="w-12 h-12 rounded-full mr-4 object-cover shadow-sm border border-gray-100">
                         <div class="text-left">
                             <p class="font-bold text-gray-900">${author}</p>
                             <p class="text-sm">${formattedDate} &bull; ${readingTime}</p>
@@ -368,15 +397,20 @@ function renderSinglePost(result) {
             <div class="mt-16 pt-8 border-t border-gray-200 text-center">
                 <p class="text-gray-600 font-medium mb-4">Share this article</p>
                 <div class="flex justify-center space-x-4">
-                    <button class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity"
+                    <button class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on LinkedIn"
                         onclick="window.open('https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}', '_blank', 'width=600,height=600')">
                         <i class="fab fa-linkedin-in"></i>
                     </button>
-                    <button class="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity"
-                        onclick="window.open('https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}', '_blank', 'width=600,height=400')">
+                    <button class="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on X / Twitter"
+                        onclick="window.open('https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}${twitterHashtags}', '_blank', 'width=600,height=400')">
                         <i class="fab fa-twitter"></i>
                     </button>
-                    <button class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:opacity-90 transition-opacity" onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied!')">
+                    <button class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on WhatsApp"
+                        onclick="window.open('https://wa.me/?text=${whatsappText}', '_blank', 'width=600,height=600')">
+                        <i class="fab fa-whatsapp text-lg"></i>
+                    </button>
+                    <button class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Copy link"
+                        onclick="navigator.clipboard.writeText('${canonicalUrl}'); this.innerHTML='<i class=\\'fas fa-check\\'></i>'; setTimeout(() => this.innerHTML='<i class=\\'fas fa-link\\'></i>', 2000);">
                         <i class="fas fa-link"></i>
                     </button>
                 </div>

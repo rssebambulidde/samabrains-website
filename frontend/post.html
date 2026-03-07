@@ -452,14 +452,14 @@
         <div class="container mx-auto px-6 py-4">
             <div class="flex justify-between items-center">
                 <div>
-                    <a href="index.html" class="text-xl sm:text-2xl font-bold gradient-text">SamaBrains</a>
+                    <a href="/index.html" class="text-xl sm:text-2xl font-bold gradient-text">SamaBrains</a>
                     <div class="text-xs sm:text-xs text-gray-600 -mt-1 hidden sm:block">Smart Digital Solutions</div>
                 </div>
                 <div class="hidden md:flex space-x-8 items-center">
-                    <a href="index.html#home" class="nav-link text-gray-700 hover:text-orange-600">Home</a>
-                    <a href="index.html#about" class="nav-link text-gray-700 hover:text-orange-600">About</a>
-                    <a href="index.html#services" class="nav-link text-gray-700 hover:text-orange-600">Services</a>
-                    <a href="index.html#portfolio" class="nav-link text-gray-700 hover:text-orange-600">Portfolio</a>
+                    <a href="/index.html#home" class="nav-link text-gray-700 hover:text-orange-600">Home</a>
+                    <a href="/index.html#about" class="nav-link text-gray-700 hover:text-orange-600">About</a>
+                    <a href="/index.html#services" class="nav-link text-gray-700 hover:text-orange-600">Services</a>
+                    <a href="/index.html#portfolio" class="nav-link text-gray-700 hover:text-orange-600">Portfolio</a>
                     <div class="dropdown" id="products-dropdown">
                         <button class="dropdown-toggle nav-link text-gray-700 hover:text-orange-600" id="products-btn"
                             aria-haspopup="true" aria-expanded="false">
@@ -476,9 +476,9 @@
                             </a>
                         </div>
                     </div>
-                    <a href="blog.html"
+                    <a href="/blog.html"
                         class="nav-link text-orange-600 font-semibold border-b-2 border-orange-600">Blog</a>
-                    <a href="index.html#contact" class="nav-link text-gray-700 hover:text-orange-600">Contact</a>
+                    <a href="/index.html#contact" class="nav-link text-gray-700 hover:text-orange-600">Contact</a>
                 </div>
                 <div class="flex items-center space-x-4">
                     <button id="dark-mode-toggle" class="text-gray-700 hover:text-orange-600 transition-colors"
@@ -495,10 +495,10 @@
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
             <div class="px-6 py-4 space-y-3">
-                <a href="index.html#home" class="block text-gray-700 hover:text-orange-600">Home</a>
-                <a href="index.html#about" class="block text-gray-700 hover:text-orange-600">About</a>
-                <a href="index.html#services" class="block text-gray-700 hover:text-orange-600">Services</a>
-                <a href="index.html#portfolio" class="block text-gray-700 hover:text-orange-600">Portfolio</a>
+                <a href="/index.html#home" class="block text-gray-700 hover:text-orange-600">Home</a>
+                <a href="/index.html#about" class="block text-gray-700 hover:text-orange-600">About</a>
+                <a href="/index.html#services" class="block text-gray-700 hover:text-orange-600">Services</a>
+                <a href="/index.html#portfolio" class="block text-gray-700 hover:text-orange-600">Portfolio</a>
                 <div>
                     <button id="mobile-products-btn"
                         class="flex items-center justify-between w-full text-gray-700 hover:text-orange-600 font-medium"
@@ -513,8 +513,8 @@
                         </a>
                     </div>
                 </div>
-                <a href="blog.html" class="block text-orange-600 font-medium">Blog</a>
-                <a href="index.html#contact" class="block text-gray-700 hover:text-orange-600">Contact</a>
+                <a href="/blog.html" class="block text-orange-600 font-medium">Blog</a>
+                <a href="/index.html#contact" class="block text-gray-700 hover:text-orange-600">Contact</a>
             </div>
         </div>
     </nav>
@@ -522,7 +522,7 @@
     <!-- Post Article Section -->
     <section class="pt-32 pb-20 bg-white min-h-screen">
         <div class="container mx-auto px-6 max-w-6xl">
-            <a href="blog.html"
+            <a href="/blog.html"
                 class="text-orange-600 hover:underline font-medium mb-8 inline-flex items-center gap-2 transition-colors">
                 <i class="fas fa-arrow-left"></i> Back to Blog
             </a>
@@ -554,10 +554,20 @@
         </div>
     </footer>
 
+    <!-- Redirect old ?id= URLs to clean /blog/ URLs -->
+    <script>
+        (function() {
+            var id = new URLSearchParams(window.location.search).get('id');
+            if (id && !window.location.pathname.startsWith('/blog/')) {
+                window.location.replace('/blog/' + id + window.location.hash);
+            }
+        })();
+    </script>
+
     <!-- Scripts -->
-    <script src="config.js?v=2.0.0"></script>
-    <script src="script.js?v=3.0.0"></script>
-    <script src="blog.js"></script>
+    <script src="/config.js?v=2.0.0"></script>
+    <script src="/script.js?v=3.0.0"></script>
+    <script src="/blog.js"></script>
 </body>
 
 </html>

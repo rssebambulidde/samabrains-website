@@ -1,0 +1,2 @@
+# /blog/:slug routes are handled by the Pages Function at functions/blog/[slug].js
+# Old post.html?id=slug URLs are redirected to /blog/slug via inline JS in post.html
