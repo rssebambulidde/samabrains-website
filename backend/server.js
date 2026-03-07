@@ -367,6 +367,94 @@ app.get('/api/posts/:slug', async (req, res) => {
   }
 });
 
+// --- Blog page with SSR OG meta tags (for social media crawlers) ---
+
+let cachedTemplate = null;
+let templateFetchedAt = 0;
+const TEMPLATE_TTL = 60 * 60 * 1000; // 1 hour
+
+async function getPostTemplate() {
+  const now = Date.now();
+  if (cachedTemplate && (now - templateFetchedAt) < TEMPLATE_TTL) {
+    return cachedTemplate;
+  }
+  try {
+    const frontendUrl = process.env.FRONTEND_URL || 'https://samabrains.com';
+    const resp = await fetch(`${frontendUrl}/post.html`);
+    if (resp.ok) {
+      cachedTemplate = await resp.text();
+      templateFetchedAt = now;
+      return cachedTemplate;
+    }
+  } catch (e) {
+    console.error('Failed to fetch post.html template:', e.message);
+  }
+  return cachedTemplate; // Return stale cache if fetch failed
+}
+
+app.get('/api/blog-page/:slug', async (req, res) => {
+  const slug = req.params.slug;
+  const spaceId = process.env.CONTENTFUL_SPACE_ID;
+  const accessToken = process.env.CONTENTFUL_ACCESS_TOKEN;
+
+  // Get the HTML template
+  let html = await getPostTemplate();
+  if (!html) {
+    return res.redirect(`/post.html?id=${slug}`);
+  }
+
+  // Fetch post data (reuse cache)
+  if (spaceId && accessToken) {
+    const cacheKey = `post_${slug}_live`;
+    let data = cache.get(cacheKey);
+
+    if (!data) {
+      try {
+        const response = await fetch(`https://cdn.contentful.com/spaces/${spaceId}/environments/master/entries?content_type=blogPost&fields.slug=${slug}&limit=1`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        if (response.ok) {
+          data = await response.json();
+          if (data.items && data.items.length > 0) {
+            cache.set(cacheKey, data);
+          }
+        }
+      } catch (e) {
+        console.error('OG tag fetch error:', e.message);
+      }
+    }
+
+    // Inject OG meta tags
+    if (data && data.items && data.items.length > 0) {
+      const fields = data.items[0].fields;
+      const title = escapeHtml(fields.title || fields.tittle || 'Article');
+      const description = escapeHtml(fields.excerpt || title);
+      const postUrl = `https://samabrains.com/blog/${slug}`;
+
+      let imageUrl = 'https://samabrains.com/assets/og-image.jpg';
+      if (fields.coverImage && fields.coverImage.sys && data.includes && data.includes.Asset) {
+        const asset = data.includes.Asset.find(a => a.sys.id === fields.coverImage.sys.id);
+        if (asset && asset.fields && asset.fields.file && asset.fields.file.url) {
+          imageUrl = `https:${asset.fields.file.url}`;
+        }
+      }
+
+      html = html.replace(/<title>.*?<\/title>/, `<title>${title} | SamaBrains Blog</title>`);
+      html = html.replace(/<meta name="description" content=".*?">/, `<meta name="description" content="${description}">`);
+      html = html.replace(/<meta property="og:title" content=".*?">/, `<meta property="og:title" content="${title}">`);
+      html = html.replace(/<meta property="og:description" content=".*?">/, `<meta property="og:description" content="${description}">`);
+      html = html.replace(/<meta property="og:image" content=".*?">/, `<meta property="og:image" content="${imageUrl}">`);
+      html = html.replace(/<meta property="og:url" content=".*?">/, `<meta property="og:url" content="${postUrl}">`);
+      html = html.replace(/<meta name="twitter:title" content=".*?">/, `<meta name="twitter:title" content="${title}">`);
+      html = html.replace(/<meta name="twitter:description" content=".*?">/, `<meta name="twitter:description" content="${description}">`);
+      html = html.replace(/<meta name="twitter:image" content=".*?">/, `<meta name="twitter:image" content="${imageUrl}">`);
+    }
+  }
+
+  res.set('Content-Type', 'text/html');
+  res.send(html);
+});
+
 // Helper function to escape HTML
 function escapeHtml(text) {
   const map = {
