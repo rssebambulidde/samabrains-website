@@ -8,6 +8,19 @@
     <meta name="author" content="SamaBrains Solutions">
     <title>Article - SamaBrains Solutions</title>
 
+    <!-- Open Graph (dynamically updated by blog.js) -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="">
+    <meta property="og:title" content="">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="">
+
+    <!-- Twitter Card (dynamically updated by blog.js) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:image" content="">
+
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -20,6 +33,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- Prism.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" crossorigin="anonymous">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js" crossorigin="anonymous"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -362,6 +380,49 @@
             background: #3a3a3a;
             color: #ff8a65;
         }
+
+        /* Code blocks */
+        .prose pre[class*="language-"] {
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            font-size: 0.9em;
+        }
+        .prose pre[class*="language-"] code {
+            background: none;
+            padding: 0;
+            color: inherit;
+            font-size: inherit;
+        }
+
+        /* Table of Contents */
+        .toc-container { transition: all 0.3s ease; }
+        .toc-container h2 { margin: 0; }
+        .toc-container ul { margin: 0; padding: 0; }
+        .dark-mode .toc-container {
+            background-color: #252525 !important;
+            border-color: #4a4a4a !important;
+        }
+        .dark-mode .toc-container a { color: #b3b3b3; }
+        .dark-mode .toc-container a:hover { color: #ff8a65; border-color: #ff8a65; }
+
+        /* Shimmer skeleton for lazy images */
+        .img-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .dark-mode .img-skeleton {
+            background: linear-gradient(90deg, #3a3a3a 25%, #4a4a4a 50%, #3a3a3a 75%);
+            background-size: 200% 100%;
+        }
+
+        /* Dark mode tag badges */
+        .dark-mode .bg-orange-100 { background-color: rgba(255, 107, 53, 0.15) !important; }
+        .dark-mode .text-orange-700 { color: #ff8a65 !important; }
     </style>
 </head>
 

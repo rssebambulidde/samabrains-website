@@ -9,6 +9,19 @@
     <meta name="author" content="SamaBrains Solutions">
     <title>Blog - SamaBrains Solutions</title>
 
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://samabrains.com/blog.html">
+    <meta property="og:title" content="Blog - SamaBrains Solutions">
+    <meta property="og:description" content="Insights on AI automation, web development, data analytics, and digital solutions.">
+    <meta property="og:image" content="https://samabrains.com/assets/og-image.jpg">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Blog - SamaBrains Solutions">
+    <meta name="twitter:description" content="Insights on AI automation, web development, data analytics, and digital solutions.">
+    <meta name="twitter:image" content="https://samabrains.com/assets/og-image.jpg">
+
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -82,6 +95,32 @@
 
         .mobile-products-list { display: none; padding-left: 1rem; margin-top: 0.5rem; border-left: 2px solid #ff6b35; }
         .mobile-products-list.open { display: block; }
+
+        /* Shimmer skeleton for lazy images */
+        .img-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .dark-mode .img-skeleton {
+            background: linear-gradient(90deg, #3a3a3a 25%, #4a4a4a 50%, #3a3a3a 75%);
+            background-size: 200% 100%;
+        }
+
+        /* Dark mode for search and tags */
+        .dark-mode #blog-search {
+            background-color: #2d2d2d;
+            border-color: #4a4a4a;
+            color: #e5e5e5;
+        }
+        .dark-mode #blog-search::placeholder { color: #808080; }
+        .dark-mode .bg-orange-100 { background-color: rgba(255, 107, 53, 0.15) !important; }
+        .dark-mode .text-orange-700 { color: #ff8a65 !important; }
+        .dark-mode .tag-filter-btn.bg-gray-200 { background-color: #3a3a3a; color: #d1d1d1; }
     </style>
 </head>
 
@@ -156,6 +195,21 @@
             <p class="text-lg text-gray-600 max-w-2xl mx-auto">Thoughts on AI automation, software engineering, data, and the digital landscape.</p>
         </div>
     </section>
+
+    <!-- Search & Filters -->
+    <div class="bg-gray-50 pt-8 pb-2">
+        <div class="container mx-auto px-6">
+            <div class="max-w-md mx-auto relative mb-4">
+                <input type="text" id="blog-search" placeholder="Search articles..."
+                    class="w-full px-5 py-3 pl-12 border border-gray-200 rounded-full focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all bg-white text-gray-900"
+                    aria-label="Search blog articles">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            </div>
+            <div id="tag-filters" class="hidden pb-2">
+                <div class="flex flex-wrap justify-center gap-2" id="tag-filter-buttons"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Blog Grid -->
     <section class="py-12 bg-gray-50 min-h-screen">

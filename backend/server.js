@@ -6,12 +6,16 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
+const NodeCache = require('node-cache');
+
 // Load dotenv for local development (optional in production)
 try {
   require('dotenv').config();
 } catch (e) {
   // dotenv not available - that's okay for production
 }
+
+const cache = new NodeCache({ stdTTL: 300, checkperiod: 60 }); // 5 min TTL
 
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
@@ -285,7 +289,6 @@ app.get('/api/posts', async (req, res) => {
   const accessToken = process.env.CONTENTFUL_ACCESS_TOKEN;
   const previewToken = process.env.CONTENTFUL_PREVIEW_TOKEN;
 
-  // Use preview token if requested (e.g., ?preview=true), otherwise fallback to the standard delivery token
   const usePreview = req.query.preview === 'true';
   const token = usePreview && previewToken ? previewToken : accessToken;
   const host = usePreview && previewToken ? 'preview.contentful.com' : 'cdn.contentful.com';
@@ -294,8 +297,12 @@ app.get('/api/posts', async (req, res) => {
     return res.status(500).json({ error: 'Contentful credentials not configured' });
   }
 
+  const cacheKey = `posts_${usePreview ? 'preview' : 'live'}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return res.json(cached);
+
   try {
-    const response = await fetch(`https://${host}/spaces/${spaceId}/environments/master/entries?content_type=blogPost`, {
+    const response = await fetch(`https://${host}/spaces/${spaceId}/environments/master/entries?content_type=blogPost&order=-fields.date`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -306,6 +313,7 @@ app.get('/api/posts', async (req, res) => {
     }
 
     const data = await response.json();
+    cache.set(cacheKey, data);
     res.json(data);
   } catch (error) {
     console.error('Error fetching from Contentful:', error);
@@ -327,6 +335,10 @@ app.get('/api/posts/:slug', async (req, res) => {
     return res.status(500).json({ error: 'Contentful credentials not configured' });
   }
 
+  const cacheKey = `post_${slug}_${usePreview ? 'preview' : 'live'}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return res.json(cached);
+
   try {
     // Query Contentful specifically for an entry with this matching slug
     const response = await fetch(`https://${host}/spaces/${spaceId}/environments/master/entries?content_type=blogPost&fields.slug=${slug}&limit=1`, {
@@ -343,6 +355,7 @@ app.get('/api/posts/:slug', async (req, res) => {
 
     // Check if a post was actually found
     if (data.items && data.items.length > 0) {
+      cache.set(cacheKey, data);
       res.json(data);
     } else {
       res.status(404).json({ error: 'Post not found' });

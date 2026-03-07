@@ -1,6 +1,6 @@
 /**
  * Blog Logic for Headless CMS integration (Contentful)
- * 
+ *
  * This file pulls data from your Express backend, which in turn
  * fetches the live data securely from Contentful.
  */
@@ -13,25 +13,28 @@ const API_BASE_URL = (window.BACKEND_URL && window.BACKEND_URL !== '')
     ? window.BACKEND_URL
     : 'http://localhost:3000';
 
+let allPosts = null; // Module-level store for search/tag filtering
+
 async function initBlog() {
     const isBlogFeed = document.getElementById('blog-grid');
     const isSinglePost = document.getElementById('post-content');
 
     if (isBlogFeed) {
-        const posts = await fetchPostsFromCMS();
-        renderBlogFeed(posts);
+        allPosts = await fetchPostsFromCMS();
+        renderBlogFeed(allPosts);
+        initSearch();
+        initTagFilters();
     }
 
     if (isSinglePost) {
-        // Get post ID (slug) from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const slug = urlParams.get('id'); // Using 'id' param for slug here to match previous HTML
+        const slug = urlParams.get('id');
 
         if (slug) {
             const result = await fetchSinglePostFromCMS(slug);
             renderSinglePost(result);
         } else {
-            renderSinglePost(null); // Will render the "Not Found" state
+            renderSinglePost(null);
         }
     }
 }
@@ -42,57 +45,38 @@ if (document.readyState === 'loading') {
     initBlog();
 }
 
-/**
- * Fetches all blog posts from the backend proxy
- */
+// --- Data Fetching ---
+
 async function fetchPostsFromCMS() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/posts`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data; // Returns the full Contentful response object
-
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
     } catch (error) {
         console.error("Error fetching posts:", error);
         return { items: [] };
     }
 }
 
-/**
- * Fetches a single post by its slug from the backend
- */
 async function fetchSinglePostFromCMS(slug) {
     try {
         const response = await fetch(`${API_BASE_URL}/api/posts/${slug}`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-
-        // Return the first matched item along with includes (for resolving images)
         if (data.items && data.items.length > 0) {
             return { post: data.items[0], includes: data.includes };
         }
         return null;
-
     } catch (error) {
         console.error("Error fetching single post:", error);
         return null;
     }
 }
 
-/**
- * Helper function to extract a resolved image URL from Contentful's linked assets
- */
-function getImageUrl(assetId, includes) {
-    if (!includes || !includes.Asset) return 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80'; // Default fallback
+// --- Helpers ---
 
+function getImageUrl(assetId, includes) {
+    if (!includes || !includes.Asset) return 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80';
     const asset = includes.Asset.find(a => a.sys.id === assetId);
     if (asset && asset.fields && asset.fields.file) {
         return `https:${asset.fields.file.url}`;
@@ -100,13 +84,130 @@ function getImageUrl(assetId, includes) {
     return 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80';
 }
 
+function calculateReadingTime(nodes) {
+    if (!nodes) return '1 min read';
+    let text = '';
+    function extractText(nodeList) {
+        nodeList.forEach(node => {
+            if (node.value) text += node.value + ' ';
+            if (node.content) extractText(node.content);
+        });
+    }
+    extractText(nodes);
+    const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+    const minutes = Math.max(1, Math.ceil(wordCount / 200));
+    return `${minutes} min read`;
+}
+
+function updateMetaTags(title, description, imageUrl, url) {
+    function setMeta(attr, attrValue, content) {
+        let el = document.querySelector(`meta[${attr}="${attrValue}"]`);
+        if (el) {
+            el.setAttribute('content', content);
+        } else {
+            el = document.createElement('meta');
+            el.setAttribute(attr, attrValue);
+            el.setAttribute('content', content);
+            document.head.appendChild(el);
+        }
+    }
+    setMeta('property', 'og:title', title);
+    setMeta('property', 'og:description', description);
+    setMeta('property', 'og:image', imageUrl);
+    setMeta('property', 'og:url', url);
+    setMeta('property', 'og:type', 'article');
+    setMeta('name', 'twitter:title', title);
+    setMeta('name', 'twitter:description', description);
+    setMeta('name', 'twitter:image', imageUrl);
+    setMeta('name', 'twitter:card', 'summary_large_image');
+    setMeta('name', 'description', description);
+}
+
+// --- Search ---
+
+function initSearch() {
+    const searchInput = document.getElementById('blog-search');
+    if (!searchInput || !allPosts) return;
+
+    let debounceTimer;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const query = searchInput.value.trim().toLowerCase();
+            if (query === '') {
+                renderBlogFeed(allPosts);
+                return;
+            }
+            const filtered = {
+                ...allPosts,
+                items: allPosts.items.filter(post => {
+                    const fields = post.fields;
+                    if (!fields) return false;
+                    const title = (fields.title || fields.tittle || '').toLowerCase();
+                    const excerpt = (fields.excerpt || '').toLowerCase();
+                    return title.includes(query) || excerpt.includes(query);
+                })
+            };
+            renderBlogFeed(filtered);
+        }, 300);
+    });
+}
+
+// --- Tag Filters ---
+
+function initTagFilters() {
+    const container = document.getElementById('tag-filter-buttons');
+    const wrapper = document.getElementById('tag-filters');
+    if (!container || !wrapper || !allPosts) return;
+
+    const tagSet = new Set();
+    (allPosts.items || []).forEach(post => {
+        (post.fields?.tags || []).forEach(tag => tagSet.add(tag));
+    });
+
+    if (tagSet.size === 0) return;
+
+    wrapper.classList.remove('hidden');
+
+    let html = `<button class="tag-filter-btn active px-4 py-1.5 rounded-full text-sm font-medium bg-orange-500 text-white transition-colors" data-tag="all">All</button>`;
+    tagSet.forEach(tag => {
+        html += `<button class="tag-filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-200 text-gray-700 hover:bg-orange-100 hover:text-orange-700 transition-colors" data-tag="${tag}">${tag}</button>`;
+    });
+    container.innerHTML = html;
+
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.tag-filter-btn');
+        if (!btn) return;
+
+        container.querySelectorAll('.tag-filter-btn').forEach(b => {
+            b.classList.remove('bg-orange-500', 'text-white', 'active');
+            b.classList.add('bg-gray-200', 'text-gray-700');
+        });
+        btn.classList.add('bg-orange-500', 'text-white', 'active');
+        btn.classList.remove('bg-gray-200', 'text-gray-700');
+
+        const selectedTag = btn.dataset.tag;
+        if (selectedTag === 'all') {
+            renderBlogFeed(allPosts);
+        } else {
+            renderBlogFeed({
+                ...allPosts,
+                items: allPosts.items.filter(post =>
+                    (post.fields?.tags || []).includes(selectedTag)
+                )
+            });
+        }
+    });
+}
+
+// --- Blog Feed Rendering ---
+
 function renderBlogFeed(posts) {
     const grid = document.getElementById('blog-grid');
     if (!grid) return;
 
     grid.innerHTML = '';
 
-    // Contentful returns an array of items in `posts.items`
     const items = posts.items || [];
 
     if (items.length === 0) {
@@ -122,34 +223,37 @@ function renderBlogFeed(posts) {
         const fields = post.fields;
         if (!fields) return;
 
-        // Safely extract data with fallbacks
         const title = fields.title || fields.tittle || 'Untitled Post';
         const slug = fields.slug || '';
         const excerpt = fields.excerpt || 'Read more about this topic...';
+        const tags = fields.tags || [];
 
-        // Format date string
         let formattedDate = 'Recent';
         if (fields.date) {
             const d = new Date(fields.date);
             formattedDate = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         }
 
-        // Extract Image
         let imageUrl = getImageUrl(fields.coverImage?.sys?.id, posts.includes);
 
+        const tagBadges = tags.map(tag =>
+            `<span class="inline-block bg-orange-100 text-orange-700 text-xs font-medium px-2 py-0.5 rounded-full">${tag}</span>`
+        ).join('');
+
         const card = document.createElement('a');
-        card.href = `post.html?id=${slug}`; // Passing the slug as the 'id' param for the next page
+        card.href = `post.html?id=${slug}`;
         card.className = "group block bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 card-hover fade-in";
         card.style.animationDelay = `${index * 0.1}s`;
 
         card.innerHTML = `
-            <div class="relative h-56 overflow-hidden bg-gray-100">
-                <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80'">
+            <div class="relative h-56 overflow-hidden bg-gray-100 img-skeleton">
+                <img src="${imageUrl}" alt="${title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80'">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
             <div class="p-6">
-                <div class="flex items-center text-xs text-gray-500 mb-4 font-medium uppercase tracking-wider">
+                <div class="flex items-center flex-wrap gap-2 text-xs text-gray-500 mb-4 font-medium uppercase tracking-wider">
                     <span>${formattedDate}</span>
+                    ${tagBadges}
                 </div>
                 <h3 class="text-xl font-bold mb-3 text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2">${title}</h3>
                 <p class="text-gray-600 text-sm line-clamp-3 mb-6">${excerpt}</p>
@@ -161,6 +265,8 @@ function renderBlogFeed(posts) {
         grid.appendChild(card);
     });
 }
+
+// --- Single Post Rendering ---
 
 function renderSinglePost(result) {
     const container = document.getElementById('post-content');
@@ -187,63 +293,88 @@ function renderSinglePost(result) {
 
     const fields = postData.fields;
 
-    // Safely extract data
     const title = fields.title || fields.tittle || 'Untitled Post';
     const author = fields.author || 'SamaBrains Team';
+    const excerpt = fields.excerpt || title;
+    const tags = fields.tags || [];
 
-    // Render Contentful Rich Text AST to HTML
+    // Reading time
+    const readingTime = calculateReadingTime(
+        fields.content && fields.content.content ? fields.content.content : null
+    );
+
+    // Table of Contents + Rich Text rendering
     let htmlContent = '<p>No content available.</p>';
+    let tocHtml = '';
     if (fields.content && fields.content.content) {
-        htmlContent = renderRichText(fields.content.content);
+        const toc = generateTableOfContents(fields.content.content);
+        const headingIds = toc ? toc.headingIds : null;
+        const processedNodes = mergeConsecutiveCodeParagraphs(fields.content.content);
+        htmlContent = renderRichText(processedNodes, headingIds);
+        if (toc) tocHtml = toc.html;
     }
 
-    // Format date string
     let formattedDate = 'Recent';
     if (fields.date) {
         const d = new Date(fields.date);
         formattedDate = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
-    // Resolve cover image from Contentful includes
     const imageUrl = getImageUrl(fields.coverImage?.sys?.id, includes);
 
-    // Set page title for SEO
+    // SEO
     document.title = `${title} | SamaBrains Blog`;
+    updateMetaTags(title, excerpt, imageUrl, window.location.href);
 
-    // Render the article
+    // Tag badges
+    const tagBadgesHtml = tags.length > 0
+        ? `<div class="flex flex-wrap justify-center gap-2 mb-6">${tags.map(tag =>
+            `<span class="inline-block bg-orange-100 text-orange-700 text-xs font-semibold px-3 py-1 rounded-full">${tag}</span>`
+        ).join('')}</div>`
+        : '';
+
+    // Share URLs
+    const shareUrl = encodeURIComponent(window.location.href);
+    const shareText = encodeURIComponent(title);
+
     container.innerHTML = `
         <article class="fade-in">
             <header class="mb-10 text-center">
-                <div class="inline-block px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-semibold tracking-wider mb-6">
+                <div class="inline-block px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-xs font-semibold tracking-wider mb-4">
                     Article
                 </div>
+                ${tagBadgesHtml}
                 <h1 class="text-3xl md:text-5xl font-extrabold mb-6 text-gray-900 leading-tight">${title}</h1>
                 <div class="flex items-center justify-center text-gray-500 mb-8 border-b border-gray-100 pb-8">
                     <div class="flex items-center">
                         <img src="assets/profile-photo.jpg" alt="${author}" class="w-12 h-12 rounded-full mr-4 object-cover shadow-sm border border-gray-100">
                         <div class="text-left">
                             <p class="font-bold text-gray-900">${author}</p>
-                            <p class="text-sm">${formattedDate} &bull; 5 min read</p>
+                            <p class="text-sm">${formattedDate} &bull; ${readingTime}</p>
                         </div>
                     </div>
                 </div>
             </header>
-            
-            <div class="mb-12 rounded-3xl overflow-hidden shadow-lg border border-gray-100 bg-gray-100">
-                <img src="${imageUrl}" alt="${title}" class="w-full h-auto object-cover max-h-[500px]">
+
+            <div class="mb-12 rounded-3xl overflow-hidden shadow-lg border border-gray-100 bg-gray-100 img-skeleton">
+                <img src="${imageUrl}" alt="${title}" loading="lazy" class="w-full h-auto object-cover max-h-[500px]">
             </div>
-            
+
+            ${tocHtml}
+
             <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed mx-auto">
                 ${htmlContent}
             </div>
-            
+
             <div class="mt-16 pt-8 border-t border-gray-200 text-center">
                 <p class="text-gray-600 font-medium mb-4">Share this article</p>
                 <div class="flex justify-center space-x-4">
-                    <button class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity">
+                    <button class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity"
+                        onclick="window.open('https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}', '_blank', 'width=600,height=600')">
                         <i class="fab fa-linkedin-in"></i>
                     </button>
-                    <button class="w-10 h-10 rounded-full bg-blue-400 text-white flex items-center justify-center hover:opacity-90 transition-opacity">
+                    <button class="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity"
+                        onclick="window.open('https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareText}', '_blank', 'width=600,height=400')">
                         <i class="fab fa-twitter"></i>
                     </button>
                     <button class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:opacity-90 transition-opacity" onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied!')">
@@ -253,45 +384,135 @@ function renderSinglePost(result) {
             </div>
         </article>
     `;
+
+    // ToC toggle
+    const tocToggle = document.getElementById('toc-toggle');
+    const tocList = document.getElementById('toc-list');
+    const tocChevron = document.querySelector('.toc-chevron');
+    if (tocToggle && tocList) {
+        tocToggle.addEventListener('click', () => {
+            const isExpanded = tocToggle.getAttribute('aria-expanded') === 'true';
+            tocToggle.setAttribute('aria-expanded', String(!isExpanded));
+            tocList.style.display = isExpanded ? 'none' : 'block';
+            if (tocChevron) tocChevron.style.transform = isExpanded ? 'rotate(180deg)' : '';
+        });
+    }
+
+    // Syntax highlighting
+    if (window.Prism) Prism.highlightAll();
 }
 
-/**
- * Recursively renders Contentful Rich Text AST nodes to HTML.
- */
-function renderRichText(nodes) {
+// --- Table of Contents ---
+
+function generateTableOfContents(nodes) {
+    if (!nodes) return null;
+
+    const headings = [];
+    nodes.forEach(node => {
+        if (['heading-1', 'heading-2', 'heading-3', 'heading-4'].includes(node.nodeType)) {
+            const text = node.content.map(n => n.value || '').join('');
+            const level = parseInt(node.nodeType.split('-')[1]);
+            const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            headings.push({ text, level, id });
+        }
+    });
+
+    if (headings.length < 2) return null;
+
+    const minLevel = Math.min(...headings.map(h => h.level));
+    const tocItems = headings.map(h => {
+        const indent = (h.level - minLevel) * 16;
+        return `<li style="padding-left: ${indent}px">
+            <a href="#${h.id}" class="block py-1.5 text-sm text-gray-600 hover:text-orange-600 transition-colors border-l-2 border-transparent hover:border-orange-500 pl-3">${h.text}</a>
+        </li>`;
+    }).join('');
+
+    const html = `
+        <nav class="toc-container bg-gray-50 rounded-2xl p-6 mb-10 border border-gray-100" aria-label="Table of Contents">
+            <button class="flex items-center justify-between w-full text-left" id="toc-toggle" aria-expanded="true">
+                <h2 class="text-lg font-bold text-gray-900 m-0">
+                    <i class="fas fa-list-ul mr-2 text-orange-500"></i>Table of Contents
+                </h2>
+                <i class="fas fa-chevron-up text-gray-400 toc-chevron transition-transform"></i>
+            </button>
+            <ul class="mt-4 space-y-1 list-none ml-0" id="toc-list">
+                ${tocItems}
+            </ul>
+        </nav>
+    `;
+
+    const headingIds = new Map();
+    headings.forEach(h => headingIds.set(h.text, h.id));
+
+    return { html, headingIds };
+}
+
+// --- Rich Text Rendering ---
+
+function isCodeParagraph(node) {
+    return node.nodeType === 'paragraph' &&
+        node.content &&
+        node.content.length > 0 &&
+        node.content.every(n => n.marks && n.marks.some(m => m.type === 'code'));
+}
+
+function mergeConsecutiveCodeParagraphs(nodes) {
+    const merged = [];
+    let i = 0;
+    while (i < nodes.length) {
+        if (isCodeParagraph(nodes[i])) {
+            const codeLines = [];
+            while (i < nodes.length && isCodeParagraph(nodes[i])) {
+                codeLines.push(nodes[i].content.map(n => n.value || '').join(''));
+                i++;
+            }
+            merged.push({ nodeType: 'code-block', lines: codeLines });
+        } else {
+            merged.push(nodes[i]);
+            i++;
+        }
+    }
+    return merged;
+}
+
+function renderRichText(nodes, headingIds) {
     return nodes.map(node => {
         switch (node.nodeType) {
             case 'paragraph':
                 return `<p>${renderInline(node.content)}</p>`;
             case 'heading-1':
-                return `<h1>${renderInline(node.content)}</h1>`;
             case 'heading-2':
-                return `<h2>${renderInline(node.content)}</h2>`;
             case 'heading-3':
-                return `<h3>${renderInline(node.content)}</h3>`;
-            case 'heading-4':
-                return `<h4>${renderInline(node.content)}</h4>`;
+            case 'heading-4': {
+                const tag = node.nodeType.replace('heading-', 'h');
+                const text = node.content.map(n => n.value || '').join('');
+                const id = headingIds && headingIds.has(text) ? ` id="${headingIds.get(text)}"` : '';
+                return `<${tag}${id}>${renderInline(node.content)}</${tag}>`;
+            }
             case 'blockquote':
-                return `<blockquote>${renderRichText(node.content)}</blockquote>`;
+                return `<blockquote>${renderRichText(node.content, headingIds)}</blockquote>`;
             case 'unordered-list':
-                return `<ul>${renderRichText(node.content)}</ul>`;
+                return `<ul>${renderRichText(node.content, headingIds)}</ul>`;
             case 'ordered-list':
-                return `<ol>${renderRichText(node.content)}</ol>`;
+                return `<ol>${renderRichText(node.content, headingIds)}</ol>`;
             case 'list-item':
-                return `<li>${renderRichText(node.content)}</li>`;
+                return `<li>${renderRichText(node.content, headingIds)}</li>`;
             case 'hr':
                 return '<hr>';
             case 'hyperlink':
                 return `<a href="${node.data.uri}" target="_blank" rel="noopener noreferrer">${renderInline(node.content)}</a>`;
+            case 'code-block': {
+                const codeText = node.lines.map(line =>
+                    line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                ).join('\n');
+                return `<pre class="language-javascript"><code class="language-javascript">${codeText}</code></pre>`;
+            }
             default:
                 return '';
         }
     }).join('');
 }
 
-/**
- * Renders inline text nodes with marks (bold, italic, code, underline).
- */
 function renderInline(nodes) {
     if (!nodes) return '';
     return nodes.map(node => {
