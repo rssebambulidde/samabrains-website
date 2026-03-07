@@ -364,7 +364,6 @@ function renderSinglePost(result) {
 
     // Share text includes title + excerpt
     const twitterText = encodeURIComponent(`${title}\n\n${excerpt}`);
-    const linkedInSummary = encodeURIComponent(`${title}\n\n${excerpt}${hashtagText}`);
     const whatsappText = encodeURIComponent(`*${title}*\n\n${excerpt}${hashtagText}\n\n${canonicalUrl}`);
 
     container.innerHTML = `
@@ -400,12 +399,12 @@ function renderSinglePost(result) {
                 <p class="text-gray-600 font-medium mb-4">Share this article</p>
                 <div class="flex justify-center space-x-4">
                     <button class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on LinkedIn"
-                        onclick="window.open('https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}&summary=${linkedInSummary}', '_blank', 'width=600,height=600')">
+                        onclick="window.open('https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}', '_blank', 'width=600,height=600')">
                         <i class="fab fa-linkedin-in"></i>
                     </button>
-                    <button class="w-10 h-10 rounded-full bg-sky-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on X / Twitter"
-                        onclick="window.open('https://twitter.com/intent/tweet?url=${shareUrl}&text=${twitterText}${twitterHashtags}', '_blank', 'width=600,height=400')">
-                        <i class="fab fa-twitter"></i>
+                    <button class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on X"
+                        onclick="window.open('https://x.com/intent/tweet?url=${shareUrl}&text=${twitterText}${twitterHashtags}', '_blank', 'width=600,height=400')">
+                        <i class="fab fa-x-twitter"></i>
                     </button>
                     <button class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center hover:opacity-90 transition-opacity" title="Share on WhatsApp"
                         onclick="window.open('https://wa.me/?text=${whatsappText}', '_blank', 'width=600,height=600')">
