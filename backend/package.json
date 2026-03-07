@@ -17,13 +17,13 @@
   "author": "SamaBrains Solutions",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
-    "express-rate-limit": "^7.1.5"
+    "node-fetch": "^2.7.0"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   }

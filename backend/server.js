@@ -1,5 +1,6 @@
-// Express server for Brevo email integration
+// Express server for Brevo email integration and Contentful Proxy
 const express = require('express');
+const fetch = require('node-fetch');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -277,6 +278,82 @@ app.post('/api/send-email', emailLimiter, async (req, res) => {
   }
 });
 
+// --- Contentful Integration ---
+
+app.get('/api/posts', async (req, res) => {
+  const spaceId = process.env.CONTENTFUL_SPACE_ID;
+  const accessToken = process.env.CONTENTFUL_ACCESS_TOKEN;
+  const previewToken = process.env.CONTENTFUL_PREVIEW_TOKEN;
+
+  // Use preview token if requested (e.g., ?preview=true), otherwise fallback to the standard delivery token
+  const usePreview = req.query.preview === 'true';
+  const token = usePreview && previewToken ? previewToken : accessToken;
+  const host = usePreview && previewToken ? 'preview.contentful.com' : 'cdn.contentful.com';
+
+  if (!spaceId || !token) {
+    return res.status(500).json({ error: 'Contentful credentials not configured' });
+  }
+
+  try {
+    const response = await fetch(`https://${host}/spaces/${spaceId}/environments/master/entries?content_type=blogPost`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Contentful API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching from Contentful:', error);
+    res.status(500).json({ error: 'Failed to fetch posts' });
+  }
+});
+
+app.get('/api/posts/:slug', async (req, res) => {
+  const spaceId = process.env.CONTENTFUL_SPACE_ID;
+  const accessToken = process.env.CONTENTFUL_ACCESS_TOKEN;
+  const previewToken = process.env.CONTENTFUL_PREVIEW_TOKEN;
+  const slug = req.params.slug;
+
+  const usePreview = req.query.preview === 'true';
+  const token = usePreview && previewToken ? previewToken : accessToken;
+  const host = usePreview && previewToken ? 'preview.contentful.com' : 'cdn.contentful.com';
+
+  if (!spaceId || !token) {
+    return res.status(500).json({ error: 'Contentful credentials not configured' });
+  }
+
+  try {
+    // Query Contentful specifically for an entry with this matching slug
+    const response = await fetch(`https://${host}/spaces/${spaceId}/environments/master/entries?content_type=blogPost&fields.slug=${slug}&limit=1`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Contentful API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Check if a post was actually found
+    if (data.items && data.items.length > 0) {
+      res.json(data);
+    } else {
+      res.status(404).json({ error: 'Post not found' });
+    }
+
+  } catch (error) {
+    console.error('Error fetching post from Contentful:', error);
+    res.status(500).json({ error: 'Failed to fetch the post' });
+  }
+});
+
 // Helper function to escape HTML
 function escapeHtml(text) {
   const map = {
@@ -308,5 +385,15 @@ app.listen(PORT, () => {
     console.log(`CONTACT_EMAIL: ${contactEmail}`);
   } else {
     console.log('CONTACT_EMAIL: using default (info@samabrains.com)');
+  }
+
+  if (process.env.CONTENTFUL_SPACE_ID && process.env.CONTENTFUL_ACCESS_TOKEN) {
+    console.log('CONTENTFUL: configured for Production');
+  } else {
+    console.log('CONTENTFUL: NOT SET - Blog will not load data!');
+  }
+
+  if (process.env.CONTENTFUL_PREVIEW_TOKEN) {
+    console.log('CONTENTFUL: Preview API configured');
   }
 });
