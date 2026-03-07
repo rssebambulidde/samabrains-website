@@ -248,6 +248,14 @@
         }
 
         /* Post Content Specific Styles */
+        .prose h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #111827;
+        }
+
         .prose h2 {
             font-size: 1.8rem;
             font-weight: 700;
@@ -261,6 +269,14 @@
             font-weight: 600;
             margin-top: 1.5rem;
             margin-bottom: 0.75rem;
+            color: #111827;
+        }
+
+        .prose h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
             color: #111827;
         }
 
@@ -285,6 +301,14 @@
             color: #374151;
         }
 
+        .prose ol {
+            list-style-type: decimal;
+            margin-left: 1.5rem;
+            margin-bottom: 1.25rem;
+            font-size: 1.125rem;
+            color: #374151;
+        }
+
         .prose li {
             margin-bottom: 0.5rem;
         }
@@ -298,18 +322,45 @@
             margin-bottom: 1.5rem;
         }
 
+        .prose hr {
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 2.5rem 0;
+        }
+
+        .prose code {
+            background: #f3f4f6;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #e65100;
+            font-family: 'Courier New', monospace;
+        }
+
+        .dark-mode .prose h1,
         .dark-mode .prose h2,
-        .dark-mode .prose h3 {
+        .dark-mode .prose h3,
+        .dark-mode .prose h4 {
             color: #f3f4f6;
         }
 
         .dark-mode .prose p,
-        .dark-mode .prose ul {
+        .dark-mode .prose ul,
+        .dark-mode .prose ol {
             color: #d1d1d1;
         }
 
         .dark-mode .prose blockquote {
             color: #9ca3af;
+        }
+
+        .dark-mode .prose hr {
+            border-top-color: #4a4a4a;
+        }
+
+        .dark-mode .prose code {
+            background: #3a3a3a;
+            color: #ff8a65;
         }
     </style>
 </head>
