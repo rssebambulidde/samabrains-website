@@ -479,6 +479,8 @@ function renderSinglePost(result) {
                 </div>
             </header>
 
+            ${displayAdHtml()}
+
             <div class="mb-12 rounded-3xl overflow-hidden shadow-lg border border-gray-100 bg-gray-100 img-skeleton">
                 <img src="${imageUrl}" alt="${title}" loading="lazy" class="w-full h-auto object-cover max-h-[500px]">
             </div>
@@ -497,6 +499,8 @@ function renderSinglePost(result) {
                     data-image="${imageUrl}"
                     data-description="${excerpt}"></div>
             </div>
+
+            ${displayAdHtml()}
         </article>
     `;
 
@@ -986,6 +990,17 @@ function inArticleAdHtml() {
             data-ad-format="fluid"
             data-ad-client="${AD_CLIENT}"
             data-ad-slot="7686706567"></ins>
+    </div>`;
+}
+
+function displayAdHtml() {
+    return `<div class="ad-container">
+        <ins class="adsbygoogle"
+            style="display:block"
+            data-ad-client="${AD_CLIENT}"
+            data-ad-slot="1653090768"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
     </div>`;
 }
 
