@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Page not found - SamaBrains Solutions">
+    <title>404 - Page Not Found | SamaBrains</title>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    </noscript>
+
+    <style>
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .gradient-text {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-gradient { background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); }
+        .dark-mode { background-color: #1a1a1a; color: #e5e5e5; }
+        .dark-mode .bg-white { background-color: #2d2d2d !important; }
+        .dark-mode .bg-gray-50 { background-color: #1a1a1a !important; }
+        .dark-mode .text-gray-900 { color: #f3f4f6 !important; }
+        .dark-mode .text-gray-600 { color: #b3b3b3 !important; }
+        .dark-mode .border-gray-100 { border-color: #4a4a4a !important; }
+        .float-animation { animation: float 3s ease-in-out infinite; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Nav -->
+    <nav class="bg-white/90 backdrop-blur-md shadow-sm">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div>
+                <a href="/" class="text-xl sm:text-2xl font-bold gradient-text">SamaBrains</a>
+                <div class="text-xs text-gray-600 -mt-1 hidden sm:block">Smart Digital Solutions</div>
+            </div>
+            <a href="/blog.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+                <i class="fas fa-arrow-left mr-1"></i> Blog
+            </a>
+        </div>
+    </nav>
+
+    <!-- 404 Content -->
+    <main class="flex-1 flex items-center justify-center px-6">
+        <div class="text-center max-w-lg">
+            <div class="float-animation mb-8">
+                <span class="text-8xl md:text-9xl font-extrabold gradient-text">404</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Page Not Found</h1>
+            <p class="text-gray-600 mb-8 text-lg">The page you're looking for doesn't exist or has been moved. Let's get you back on track.</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/" class="hero-gradient text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity inline-flex items-center justify-center gap-2">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="/blog.html" class="bg-white text-gray-700 px-8 py-3 rounded-full font-semibold border border-gray-200 hover:border-orange-500 hover:text-orange-600 transition-all inline-flex items-center justify-center gap-2">
+                    <i class="fas fa-newspaper"></i> Blog
+                </a>
+            </div>
+
+            <!-- Suggested posts -->
+            <div id="suggested-posts" class="mt-16 text-left hidden">
+                <h2 class="text-lg font-bold text-gray-900 mb-4 text-center">You might enjoy these</h2>
+                <div id="suggested-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-6 mt-auto">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2026 SamaBrains Solutions. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/config.js?v=2.0.0"></script>
+    <script>
+        // Fetch and show 3 latest posts as suggestions
+        (async function() {
+            try {
+                const backendUrl = (window.BACKEND_URL && window.BACKEND_URL !== '') ? window.BACKEND_URL : 'http://localhost:3000';
+                const res = await fetch(`${backendUrl}/api/posts`);
+                if (!res.ok) return;
+                const data = await res.json();
+                const items = (data.items || []).slice(0, 3);
+                if (items.length === 0) return;
+
+                const grid = document.getElementById('suggested-grid');
+                items.forEach(post => {
+                    const f = post.fields;
+                    if (!f) return;
+                    const title = f.title || f.tittle || 'Untitled';
+                    const slug = f.slug || '';
+                    let imgUrl = 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80';
+                    if (f.coverImage && f.coverImage.sys && data.includes && data.includes.Asset) {
+                        const asset = data.includes.Asset.find(a => a.sys.id === f.coverImage.sys.id);
+                        if (asset && asset.fields && asset.fields.file) imgUrl = 'https:' + asset.fields.file.url;
+                    }
+                    grid.innerHTML += `
+                        <a href="/blog/${slug}" class="group block bg-white rounded-xl shadow-sm hover:shadow-lg transition-all overflow-hidden border border-gray-100">
+                            <div class="h-32 overflow-hidden bg-gray-100">
+                                <img src="${imgUrl}" alt="${title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            </div>
+                            <div class="p-3">
+                                <h3 class="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2">${title}</h3>
+                            </div>
+                        </a>`;
+                });
+                document.getElementById('suggested-posts').classList.remove('hidden');
+            } catch (e) {}
+        })();
+
+        // Dark mode support
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    </script>
+</body>
+
+</html>

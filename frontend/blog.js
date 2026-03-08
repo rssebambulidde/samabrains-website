@@ -23,6 +23,7 @@ async function initBlog() {
     const isSinglePost = document.getElementById('post-content');
 
     if (isBlogFeed) {
+        renderBookmarks();
         renderReadingHistory();
         allPosts = await fetchPostsFromCMS();
         renderBlogFeed(allPosts);
@@ -493,9 +494,14 @@ function renderSinglePost(result) {
 
             <div id="share-section" class="mt-16 pt-8 border-t border-gray-200 text-center">
                 <p class="text-gray-600 font-medium mb-4">Share this article</p>
-                <button id="copy-link-btn" class="copy-link-btn mb-4" aria-label="Copy article link">
-                    <i class="fas fa-link"></i> Copy Link
-                </button>
+                <div class="flex justify-center gap-3 mb-4">
+                    <button id="copy-link-btn" class="copy-link-btn" aria-label="Copy article link">
+                        <i class="fas fa-link"></i> Copy Link
+                    </button>
+                    <button id="bookmark-btn" class="bookmark-btn" aria-label="Bookmark article">
+                        <i class="far fa-bookmark"></i> Save
+                    </button>
+                </div>
                 <div class="sharethis-inline-share-buttons"
                     data-url="${canonicalUrl}"
                     data-title="${title}"
@@ -557,6 +563,15 @@ function renderSinglePost(result) {
 
     // Copy link button
     initCopyLinkButton(canonicalUrl);
+
+    // Bookmark button
+    initBookmarkButton(fields.slug, title, imageUrl, fields.date || '');
+
+    // Reading position memory — restore scroll
+    restoreReadingPosition(fields.slug);
+
+    // Collapsible sections
+    initCollapsibleSections();
 
     // Like/Clap button
     initClapButton(fields.slug);
@@ -1232,4 +1247,136 @@ function renderReadingHistory() {
     `;
 
     grid.parentElement.insertBefore(section, grid);
+}
+
+// --- Post Bookmarks ---
+
+function getBookmarks() {
+    try { return JSON.parse(localStorage.getItem('bookmarks') || '[]'); } catch (e) { return []; }
+}
+
+function initBookmarkButton(slug, title, imageUrl, date) {
+    const btn = document.getElementById('bookmark-btn');
+    if (!btn) return;
+
+    let bookmarks = getBookmarks();
+    const isBookmarked = bookmarks.some(b => b.slug === slug);
+    if (isBookmarked) {
+        btn.classList.add('bookmarked');
+        btn.innerHTML = '<i class="fas fa-bookmark"></i> Saved';
+    }
+
+    btn.addEventListener('click', () => {
+        bookmarks = getBookmarks();
+        const idx = bookmarks.findIndex(b => b.slug === slug);
+        if (idx >= 0) {
+            bookmarks.splice(idx, 1);
+            btn.classList.remove('bookmarked');
+            btn.innerHTML = '<i class="far fa-bookmark"></i> Save';
+        } else {
+            bookmarks.unshift({ slug, title, imageUrl, date, timestamp: Date.now() });
+            if (bookmarks.length > 20) bookmarks = bookmarks.slice(0, 20);
+            btn.classList.add('bookmarked');
+            btn.innerHTML = '<i class="fas fa-bookmark"></i> Saved';
+        }
+        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+    });
+}
+
+function renderBookmarks() {
+    const bookmarks = getBookmarks();
+    if (bookmarks.length === 0) return;
+
+    const grid = document.getElementById('blog-grid');
+    if (!grid) return;
+
+    const cards = bookmarks.map(b => `
+        <a href="/blog/${b.slug}" class="flex-shrink-0 w-56 group block bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
+            <div class="h-32 overflow-hidden bg-gray-100">
+                <img src="${b.imageUrl || ''}" alt="${b.title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80'">
+            </div>
+            <div class="p-3">
+                <h4 class="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2">${b.title}</h4>
+            </div>
+        </a>
+    `).join('');
+
+    const section = document.createElement('div');
+    section.className = 'reading-history mb-10';
+    section.innerHTML = `
+        <h3 class="text-lg font-bold text-gray-900 mb-3"><i class="fas fa-bookmark text-orange-500 mr-2"></i>Saved for Later</h3>
+        <div class="flex gap-4 overflow-x-auto pb-3 scrollbar-thin">${cards}</div>
+    `;
+
+    grid.parentElement.insertBefore(section, grid);
+}
+
+// --- Reading Position Memory ---
+
+function saveReadingPosition(slug) {
+    const scrollY = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (docHeight <= 0) return;
+    const progress = scrollY / docHeight;
+    // Only save if partially read (between 5% and 95%)
+    if (progress > 0.05 && progress < 0.95) {
+        localStorage.setItem(`readPos:${slug}`, String(scrollY));
+    } else if (progress >= 0.95) {
+        // Finished — remove saved position
+        localStorage.removeItem(`readPos:${slug}`);
+    }
+}
+
+function restoreReadingPosition(slug) {
+    const savedY = localStorage.getItem(`readPos:${slug}`);
+    if (!savedY) return;
+
+    const y = parseInt(savedY, 10);
+    if (isNaN(y) || y <= 0) return;
+
+    // Show a small toast asking if they want to resume
+    const toast = document.createElement('div');
+    toast.id = 'resume-toast';
+    toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#1f2937;color:white;padding:0.75rem 1.25rem;border-radius:12px;font-size:0.85rem;z-index:999;display:flex;align-items:center;gap:0.75rem;box-shadow:0 8px 25px rgba(0,0,0,0.2);animation:fadeIn 0.3s ease;';
+    toast.innerHTML = `
+        <span>Continue where you left off?</span>
+        <button id="resume-yes" style="background:#ff6b35;color:white;border:none;padding:0.35rem 0.9rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.8rem;">Resume</button>
+        <button id="resume-no" style="background:transparent;color:#9ca3af;border:1px solid #4a4a4a;padding:0.35rem 0.9rem;border-radius:8px;cursor:pointer;font-size:0.8rem;">Dismiss</button>
+    `;
+    document.body.appendChild(toast);
+
+    document.getElementById('resume-yes').addEventListener('click', () => {
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        toast.remove();
+        localStorage.removeItem(`readPos:${slug}`);
+    });
+    document.getElementById('resume-no').addEventListener('click', () => {
+        toast.remove();
+        localStorage.removeItem(`readPos:${slug}`);
+    });
+
+    // Auto-dismiss after 8 seconds
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 8000);
+
+    // Save position on scroll for next visit
+    let saveTimeout;
+    window.addEventListener('scroll', () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => saveReadingPosition(slug), 500);
+    }, { passive: true });
+}
+
+// --- Collapsible Sections ---
+
+function initCollapsibleSections() {
+    // Convert <h4> followed by content into collapsible sections when the h4 text starts with "▶" or "FAQ:" or "Details:"
+    // Also convert <blockquote> that start with [collapse] or [toggle]
+    const prose = document.querySelector('.prose');
+    if (!prose) return;
+
+    document.querySelectorAll('.collapsible-toggle').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            toggle.closest('.collapsible-section').classList.toggle('open');
+        });
+    });
 }
