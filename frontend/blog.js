@@ -593,7 +593,8 @@ function initCopyButtons() {
 // --- Breadcrumbs ---
 
 function injectBreadcrumbs(title, slug) {
-    const backLink = document.querySelector('a[href="/blog.html"]');
+    // Target the "Back to Blog" link in the article section, not the navbar Blog link
+    const backLink = document.querySelector('section a[href="/blog.html"]');
     if (!backLink) return;
 
     const breadcrumb = document.createElement('nav');
