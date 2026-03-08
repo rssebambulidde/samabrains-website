@@ -157,10 +157,31 @@
             margin-bottom: 0.25rem;
         }
         .dark-mode .ad-container::before { color: #6b7280; }
+
+        /* Back to top button */
+        #back-to-top {
+            position: fixed; bottom: 2rem; right: 2rem; width: 48px; height: 48px;
+            border-radius: 50%; background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white; border: none; cursor: pointer; font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s, transform 0.2s;
+            z-index: 50; display: flex; align-items: center; justify-content: center;
+        }
+        #back-to-top.visible { opacity: 1; visibility: visible; }
+        #back-to-top:hover { transform: scale(1.1); }
+
+        /* Reading history */
+        .reading-history .scrollbar-thin { scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
+        .reading-history .scrollbar-thin::-webkit-scrollbar { height: 6px; }
+        .reading-history .scrollbar-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+        .dark-mode .reading-history .scrollbar-thin { scrollbar-color: #4a4a4a transparent; }
+        .dark-mode .reading-history .scrollbar-thin::-webkit-scrollbar-thumb { background: #4a4a4a; }
     </style>
 </head>
 
 <body class="bg-gray-50 smooth-scroll">
+    <button id="back-to-top" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
+
     <!-- Navigation -->
     <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
         <div class="container mx-auto px-6 py-4">

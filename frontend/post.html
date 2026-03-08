@@ -531,12 +531,117 @@
         }
         .dark-mode .ad-container::before { color: #6b7280; }
 
+        /* Back to top button */
+        #back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s, transform 0.2s;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #back-to-top.visible { opacity: 1; visibility: visible; }
+        #back-to-top:hover { transform: scale(1.1); }
+
+        /* Like/Clap button */
+        .clap-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.4rem;
+            border: 2px solid #ff6b35;
+            border-radius: 9999px;
+            background: transparent;
+            color: #ff6b35;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .clap-btn:hover { background: rgba(255, 107, 53, 0.08); }
+        .clap-btn.clapped { background: linear-gradient(135deg, #ff6b35, #f7931e); color: white; border-color: transparent; }
+        .clap-animate { animation: clapBounce 0.35s ease; }
+        @keyframes clapBounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+        .dark-mode .clap-btn { border-color: #ff8a65; color: #ff8a65; }
+        .dark-mode .clap-btn:hover { background: rgba(255, 138, 101, 0.1); }
+        .dark-mode .clap-btn.clapped { background: linear-gradient(135deg, #ff6b35, #f7931e); color: white; border-color: transparent; }
+
+        /* Estimated time left pill */
+        #reading-time-left {
+            position: fixed;
+            top: 8px;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(6px);
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #ff6b35;
+            z-index: 9998;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        #reading-time-left.visible { opacity: 1; }
+        .dark-mode #reading-time-left { background: rgba(45, 45, 45, 0.9); color: #ff8a65; }
+
+        /* Prev/Next post nav */
+        .prev-next-nav {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        .prev-next-nav a {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #374151;
+            background: #f9fafb;
+            transition: all 0.2s;
+        }
+        .prev-next-nav a:hover { background: rgba(255, 107, 53, 0.06); color: #ff6b35; }
+        .prev-next-nav a.next { text-align: right; justify-content: flex-end; }
+        .prev-next-nav .pn-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; }
+        .prev-next-nav .pn-title { font-weight: 600; font-size: 0.95rem; line-height: 1.3; }
+        .dark-mode .prev-next-nav { border-top-color: #4a4a4a; }
+        .dark-mode .prev-next-nav a { background: #2d2d2d; color: #d1d1d1; }
+        .dark-mode .prev-next-nav a:hover { background: rgba(255, 107, 53, 0.1); color: #ff8a65; }
+
+        @media (max-width: 640px) {
+            .prev-next-nav { flex-direction: column; }
+        }
+
         @media print {
             nav, footer, #toc-sidebar, .toc-mobile,
             #share-section, a[href="/blog.html"],
             #reading-progress, #related-posts,
             #series-nav .flex.justify-between,
             .copy-code-btn, #blog-pagination, .ad-container,
+            #back-to-top, .clap-section, #reading-time-left, .prev-next-nav,
             #breadcrumbs + a[href="/blog.html"] { display: none !important; }
 
             body {
@@ -590,6 +695,8 @@
 <body class="bg-gray-50 smooth-scroll">
     <!-- Reading Progress Bar -->
     <div id="reading-progress" style="position:fixed;top:0;left:0;width:0%;height:3px;background:linear-gradient(90deg,#ff6b35,#f7931e);z-index:9999;transition:width 0.1s linear;pointer-events:none;" aria-hidden="true"></div>
+    <div id="reading-time-left" aria-hidden="true"></div>
+    <button id="back-to-top" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
 
     <!-- Navigation -->
     <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
