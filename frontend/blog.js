@@ -963,12 +963,68 @@ function renderRichText(nodes, headingIds) {
                 const codeText = node.lines.map(line =>
                     line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 ).join('\n');
-                return `<pre class="language-javascript"><code class="language-javascript">${codeText}</code></pre>`;
+                const lang = detectCodeLanguage(codeText);
+                return `<pre class="language-${lang}"><code class="language-${lang}">${codeText}</code></pre>`;
             }
             default:
                 return '';
         }
     }).join('');
+}
+
+function detectCodeLanguage(code) {
+    const trimmed = code.trim();
+    const firstLine = trimmed.split('\n')[0].trim().toLowerCase();
+
+    // Check for explicit language hints (```language)
+    if (firstLine.startsWith('```')) return firstLine.slice(3).trim() || 'none';
+
+    // JSON
+    if (/^\s*[\{\[]/.test(trimmed) && /[\}\]]\s*$/.test(trimmed)) return 'json';
+    if (/"[\w.]+"\s*:/.test(trimmed)) return 'json';
+
+    // Python
+    if (/^(import |from |def |class |print\(|if __name__)/.test(firstLine)) return 'python';
+    if (/^\s*(elif |except |raise |with |yield |lambda )/.test(trimmed)) return 'python';
+
+    // SQL
+    if (/^(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|FROM|WHERE)\b/i.test(firstLine)) return 'sql';
+
+    // Bash / Shell
+    if (/^(\$|#!\/bin|sudo |apt |npm |pip |curl |wget |mkdir |cd |ls |echo |export )/.test(firstLine)) return 'bash';
+    if (/^[a-z_]+\s+(install|run|start|build|test)\b/.test(firstLine)) return 'bash';
+
+    // HTML / XML
+    if (/^<(!DOCTYPE|html|div|span|head|body|script|link|meta)/i.test(firstLine)) return 'html';
+    if (/^<\?xml/.test(firstLine)) return 'xml';
+
+    // CSS
+    if (/^(\.|#|@media|@keyframes|:root)\s*\{?/.test(firstLine)) return 'css';
+    if (/\{[\s\S]*?:\s*[\s\S]*?;[\s\S]*?\}/.test(trimmed)) return 'css';
+
+    // YAML
+    if (/^[a-zA-Z_][\w]*:\s/.test(firstLine) && !trimmed.includes('{')) return 'yaml';
+
+    // TypeScript / JavaScript
+    if (/^(const |let |var |function |import |export |class |async |=>|console\.)/.test(firstLine)) return 'javascript';
+    if (/^(interface |type |enum )/.test(firstLine)) return 'typescript';
+
+    // C# / Java
+    if (/^(using |namespace |public class |private |protected )/.test(firstLine)) return 'csharp';
+
+    // Dockerfile
+    if (/^(FROM |RUN |CMD |COPY |WORKDIR |ENV |EXPOSE )/.test(firstLine)) return 'docker';
+
+    // Directory tree / plain text
+    if (/[└├│──]/.test(trimmed) || /^\w+\/\s*[└├│]/.test(trimmed)) return 'none';
+
+    // Config-like (key=value)
+    if (/^[\w.]+\s*=\s*.+/.test(firstLine)) return 'ini';
+
+    // Markdown
+    if (/^#{1,6}\s/.test(firstLine)) return 'markdown';
+
+    return 'none';
 }
 
 function renderInline(nodes) {
