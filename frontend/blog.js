@@ -561,8 +561,8 @@ function renderSinglePost(result) {
     // Series navigation (async, non-blocking)
     renderSeriesNav(fields.slug, tags, container);
 
-    // Copy link button
-    initCopyLinkButton(canonicalUrl);
+    // Copy link button — use actual browser URL
+    initCopyLinkButton(window.location.href);
 
     // Bookmark button
     initBookmarkButton(fields.slug, title, imageUrl, fields.date || '');
