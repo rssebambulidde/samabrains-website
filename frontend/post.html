@@ -556,6 +556,27 @@
         #back-to-top.visible { opacity: 1; visibility: visible; }
         #back-to-top:hover { transform: scale(1.1); }
 
+        /* Copy link button */
+        .copy-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1.2rem;
+            border: 1px solid #d1d5db;
+            border-radius: 9999px;
+            background: white;
+            color: #374151;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-link-btn:hover { border-color: #ff6b35; color: #ff6b35; }
+        .copy-link-btn.copied { border-color: #22c55e; color: #22c55e; }
+        .dark-mode .copy-link-btn { background: #2d2d2d; border-color: #4a4a4a; color: #d1d1d1; }
+        .dark-mode .copy-link-btn:hover { border-color: #ff8a65; color: #ff8a65; }
+        .dark-mode .copy-link-btn.copied { border-color: #22c55e; color: #22c55e; }
+
         /* Like/Clap button */
         .clap-btn {
             display: inline-flex;

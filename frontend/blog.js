@@ -493,6 +493,9 @@ function renderSinglePost(result) {
 
             <div id="share-section" class="mt-16 pt-8 border-t border-gray-200 text-center">
                 <p class="text-gray-600 font-medium mb-4">Share this article</p>
+                <button id="copy-link-btn" class="copy-link-btn mb-4" aria-label="Copy article link">
+                    <i class="fas fa-link"></i> Copy Link
+                </button>
                 <div class="sharethis-inline-share-buttons"
                     data-url="${canonicalUrl}"
                     data-title="${title}"
@@ -551,6 +554,9 @@ function renderSinglePost(result) {
 
     // Series navigation (async, non-blocking)
     renderSeriesNav(fields.slug, tags, container);
+
+    // Copy link button
+    initCopyLinkButton(canonicalUrl);
 
     // Like/Clap button
     initClapButton(fields.slug);
@@ -1019,6 +1025,39 @@ function initAdSlots() {
     document.querySelectorAll('.adsbygoogle').forEach(ad => {
         if (!ad.dataset.adsbygoogleStatus) {
             try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { /* AdSense not loaded yet */ }
+        }
+    });
+}
+
+// --- Copy Article Link ---
+
+function initCopyLinkButton(url) {
+    const btn = document.getElementById('copy-link-btn');
+    if (!btn) return;
+
+    btn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(url);
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-link"></i> Copy Link';
+                btn.classList.remove('copied');
+            }, 2000);
+        } catch (e) {
+            // Fallback for older browsers
+            const input = document.createElement('input');
+            input.value = url;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-link"></i> Copy Link';
+                btn.classList.remove('copied');
+            }, 2000);
         }
     });
 }
