@@ -960,10 +960,18 @@ function renderRichText(nodes, headingIds) {
             case 'hyperlink':
                 return `<a href="${node.data.uri}" target="_blank" rel="noopener noreferrer">${renderInline(node.content)}</a>`;
             case 'code-block': {
-                const codeText = node.lines.map(line =>
+                let codeText = node.lines.map(line =>
                     line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 ).join('\n');
                 const lang = detectCodeLanguage(codeText);
+                // Auto-format single-line JSON
+                if (lang === 'json' && !codeText.includes('\n')) {
+                    try {
+                        const raw = codeText.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                        const formatted = JSON.stringify(JSON.parse(raw), null, 2);
+                        codeText = formatted.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    } catch (e) { /* not valid JSON, keep as-is */ }
+                }
                 return `<pre class="language-${lang}"><code class="language-${lang}">${codeText}</code></pre>`;
             }
             default:
@@ -1347,13 +1355,13 @@ function renderBookmarks() {
     if (!grid) return;
 
     const cards = bookmarks.map(b => `
-        <div class="flex-shrink-0 w-56 relative group/card">
-            <a href="/blog/${b.slug}" class="block bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
+        <div class="flex-shrink-0 w-56 relative bookmark-card">
+            <a href="/blog/${b.slug}" class="group block bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
                 <div class="h-32 overflow-hidden bg-gray-100">
-                    <img src="${b.imageUrl || ''}" alt="${b.title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105" onerror="this.src='https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80'">
+                    <img src="${b.imageUrl || ''}" alt="${b.title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80'">
                 </div>
                 <div class="p-3">
-                    <h4 class="text-sm font-bold text-gray-900 group-hover/card:text-orange-600 transition-colors line-clamp-2">${b.title}</h4>
+                    <h4 class="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2">${b.title}</h4>
                 </div>
             </a>
             <button class="bookmark-remove-btn" data-slug="${b.slug}" aria-label="Remove bookmark" title="Remove">
@@ -1380,7 +1388,7 @@ function renderBookmarks() {
             let bks = getBookmarks();
             bks = bks.filter(b => b.slug !== slug);
             localStorage.setItem('bookmarks', JSON.stringify(bks));
-            btn.closest('.relative').remove();
+            btn.closest('.bookmark-card').remove();
             if (bks.length === 0) section.remove();
         });
     });
