@@ -298,9 +298,18 @@ function renderBlogFeed(posts, resetPage) {
             </div>
         `;
         grid.appendChild(card);
+
+        // Insert in-feed ad after every 3rd card
+        if ((index + 1) % 3 === 0 && index < pageItems.length - 1) {
+            const adRow = document.createElement('div');
+            adRow.className = 'col-span-1 md:col-span-2 lg:col-span-3';
+            adRow.innerHTML = inFeedAdHtml();
+            grid.appendChild(adRow);
+        }
     });
 
     renderPaginationControls(posts, items.length, totalPages);
+    initAdSlots();
 }
 
 function renderPaginationControls(posts, totalItems, totalPages) {
@@ -393,6 +402,17 @@ function renderSinglePost(result) {
         const headingIds = toc ? toc.headingIds : null;
         const processedNodes = mergeConsecutiveCodeParagraphs(fields.content.content);
         htmlContent = renderRichText(processedNodes, headingIds);
+
+        // Inject in-article ad after the 3rd <h2 section
+        const h2Regex = /<h2[\s>]/gi;
+        let h2Match, h2Count = 0, midAdInsertPos = -1;
+        while ((h2Match = h2Regex.exec(htmlContent)) !== null) {
+            h2Count++;
+            if (h2Count === 3) { midAdInsertPos = h2Match.index; break; }
+        }
+        if (midAdInsertPos > 0) {
+            htmlContent = htmlContent.slice(0, midAdInsertPos) + inArticleAdHtml() + htmlContent.slice(midAdInsertPos);
+        }
     }
 
     let formattedDate = 'Recent';
@@ -543,6 +563,8 @@ function renderSinglePost(result) {
     // Save to reading history
     saveToReadingHistory(fields.slug, title, imageUrl, fields.date || '');
 
+    // Initialize AdSense ad slots
+    initAdSlots();
 }
 
 // --- Reading Progress Bar ---
@@ -956,14 +978,25 @@ function renderInline(nodes) {
 
 const AD_CLIENT = 'ca-pub-6859477325721314';
 
-function adUnitHtml(extraClass) {
-    return `<div class="ad-container${extraClass ? ' ' + extraClass : ''}">
+function inArticleAdHtml() {
+    return `<div class="ad-container">
+        <ins class="adsbygoogle"
+            style="display:block; text-align:center;"
+            data-ad-layout="in-article"
+            data-ad-format="fluid"
+            data-ad-client="${AD_CLIENT}"
+            data-ad-slot="7686706567"></ins>
+    </div>`;
+}
+
+function inFeedAdHtml() {
+    return `<div class="ad-container col-span-1 md:col-span-2 lg:col-span-3">
         <ins class="adsbygoogle"
             style="display:block"
+            data-ad-format="fluid"
+            data-ad-layout-key="-ef+6k-30-ac+ty"
             data-ad-client="${AD_CLIENT}"
-            data-ad-slot=""
-            data-ad-format="auto"
-            data-full-width-responsive="true"></ins>
+            data-ad-slot="2746680585"></ins>
     </div>`;
 }
 
