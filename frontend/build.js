@@ -39,6 +39,12 @@ function escapeAttr(text) {
     return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function escapeXml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+               .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+
 function httpGetJson(url) {
     return new Promise((resolve, reject) => {
         const lib = url.startsWith('https') ? require('https') : require('http');
@@ -100,6 +106,31 @@ async function prerenderBlogPages() {
         html = html.replace(/<meta name="twitter:description" content=".*?">/, `<meta name="twitter:description" content="${description}">`);
         html = html.replace(/<meta name="twitter:image" content=".*?">/, `<meta name="twitter:image" content="${imageUrl}">`);
 
+        // Inject canonical link
+        html = html.replace(
+            /<link rel="canonical" href="" id="canonical-link">/,
+            `<link rel="canonical" href="${postUrl}" id="canonical-link">`
+        );
+
+        // Inject JSON-LD structured data
+        const schemaOrg = JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": fields.title || fields.tittle || 'Article',
+            "description": fields.excerpt || '',
+            "url": postUrl,
+            "datePublished": fields.date || '',
+            "dateModified": fields.date || '',
+            "author": { "@type": "Person", "name": fields.author || 'SamaBrains Team', "url": "https://samabrains.com" },
+            "publisher": { "@type": "Organization", "name": "SamaBrains", "url": "https://samabrains.com", "logo": { "@type": "ImageObject", "url": "https://samabrains.com/favicon.svg" } },
+            "image": imageUrl || 'https://samabrains.com/assets/og-image.jpg',
+            "mainEntityOfPage": { "@type": "WebPage", "@id": postUrl }
+        });
+        html = html.replace(
+            /<script type="application\/ld\+json" id="structured-data"><\/script>/,
+            `<script type="application/ld+json" id="structured-data">${schemaOrg}</script>`
+        );
+
         const dir = path.join(__dirname, 'blog', slug);
         fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(path.join(dir, 'index.html'), html);
@@ -109,7 +140,101 @@ async function prerenderBlogPages() {
     console.log('\x1b[32m%s\x1b[0m', `✅ Pre-rendered ${count} blog post pages with OG meta tags`);
 }
 
-prerenderBlogPages().catch(err => {
-    console.error('\x1b[33m%s\x1b[0m', `⚠️  Pre-rendering skipped (posts still work via JS): ${err.message}`);
-});
+// --- Generate RSS Feed ---
+
+async function generateRssFeed() {
+    const data = await httpGetJson(`${backendUrl}/api/posts`);
+    if (!data.items || data.items.length === 0) {
+        console.log('⚠️  No posts found for RSS feed');
+        return;
+    }
+
+    const items = data.items.map(item => {
+        const fields = item.fields;
+        const slug = fields.slug || '';
+        const title = escapeXml(fields.title || fields.tittle || 'Untitled');
+        const description = escapeXml(fields.excerpt || '');
+        const link = `https://samabrains.com/blog/${slug}`;
+        const pubDate = fields.date ? new Date(fields.date).toUTCString() : new Date().toUTCString();
+
+        let imageUrl = 'https://samabrains.com/assets/og-image.jpg';
+        if (fields.coverImage?.sys?.id && data.includes?.Asset) {
+            const asset = data.includes.Asset.find(a => a.sys.id === fields.coverImage.sys.id);
+            if (asset?.fields?.file?.url) imageUrl = `https:${asset.fields.file.url}`;
+        }
+
+        return `    <item>
+      <title>${title}</title>
+      <link>${link}</link>
+      <guid isPermaLink="true">${link}</guid>
+      <description>${description}</description>
+      <pubDate>${pubDate}</pubDate>
+      <enclosure url="${escapeXml(imageUrl)}" type="image/jpeg"/>
+    </item>`;
+    }).join('\n');
+
+    const rssXml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>SamaBrains Blog</title>
+    <link>https://samabrains.com/blog.html</link>
+    <description>Insights on AI automation, web development, data analytics, and digital solutions.</description>
+    <language>en-us</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <atom:link href="https://samabrains.com/rss.xml" rel="self" type="application/rss+xml"/>
+${items}
+  </channel>
+</rss>`;
+
+    fs.writeFileSync(path.join(__dirname, 'rss.xml'), rssXml);
+    console.log('\x1b[32m%s\x1b[0m', `✅ rss.xml generated with ${data.items.length} posts`);
+}
+
+// --- Generate Dynamic Sitemap ---
+
+async function generateSitemap() {
+    const staticPages = [
+        { loc: 'https://samabrains.com/', changefreq: 'monthly', priority: '1.0' },
+        { loc: 'https://samabrains.com/#about', changefreq: 'monthly', priority: '0.8' },
+        { loc: 'https://samabrains.com/#services', changefreq: 'monthly', priority: '0.8' },
+        { loc: 'https://samabrains.com/#portfolio', changefreq: 'monthly', priority: '0.8' },
+        { loc: 'https://samabrains.com/#contact', changefreq: 'monthly', priority: '0.7' },
+        { loc: 'https://samabrains.com/blog.html', changefreq: 'weekly', priority: '0.9' },
+    ];
+
+    const data = await httpGetJson(`${backendUrl}/api/posts`);
+    const postUrls = (data.items || [])
+        .filter(item => item.fields && item.fields.slug)
+        .map(item => {
+            const fields = item.fields;
+            const lastmod = fields.date ? fields.date.split('T')[0] : new Date().toISOString().split('T')[0];
+            return { loc: `https://samabrains.com/blog/${fields.slug}`, lastmod, changefreq: 'monthly', priority: '0.7' };
+        });
+
+    const today = new Date().toISOString().split('T')[0];
+    const allUrls = [...staticPages.map(p => ({ ...p, lastmod: today })), ...postUrls];
+
+    const urlEntries = allUrls.map(u => `  <url>
+    <loc>${u.loc}</loc>
+    <lastmod>${u.lastmod}</lastmod>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join('\n');
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urlEntries}
+</urlset>`;
+
+    fs.writeFileSync(path.join(__dirname, 'sitemap.xml'), xml);
+    console.log('\x1b[32m%s\x1b[0m', `✅ sitemap.xml generated with ${allUrls.length} URLs`);
+}
+
+// --- Run all build tasks ---
+
+Promise.all([
+    prerenderBlogPages().catch(err => console.warn(`⚠️  Pre-rendering skipped: ${err.message}`)),
+    generateRssFeed().catch(err => console.warn(`⚠️  RSS feed skipped: ${err.message}`)),
+    generateSitemap().catch(err => console.warn(`⚠️  Sitemap skipped: ${err.message}`)),
+]).then(() => console.log('\x1b[32m%s\x1b[0m', '✅ Build complete'));
 

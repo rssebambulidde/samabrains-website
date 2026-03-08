@@ -14,6 +14,9 @@ const API_BASE_URL = (window.BACKEND_URL && window.BACKEND_URL !== '')
     : 'http://localhost:3000';
 
 let allPosts = null; // Module-level store for search/tag filtering
+let allPostsCache = null; // Cached fetch result shared across features
+let currentPage = 1;
+const POSTS_PER_PAGE = 9;
 
 async function initBlog() {
     const isBlogFeed = document.getElementById('blog-grid');
@@ -54,10 +57,12 @@ if (document.readyState === 'loading') {
 // --- Data Fetching ---
 
 async function fetchPostsFromCMS() {
+    if (allPostsCache) return allPostsCache;
     try {
         const response = await fetch(`${API_BASE_URL}/api/posts`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return await response.json();
+        allPostsCache = await response.json();
+        return allPostsCache;
     } catch (error) {
         console.error("Error fetching posts:", error);
         return { items: [] };
@@ -219,9 +224,11 @@ function initTagFilters() {
 
 // --- Blog Feed Rendering ---
 
-function renderBlogFeed(posts) {
+function renderBlogFeed(posts, resetPage) {
     const grid = document.getElementById('blog-grid');
     if (!grid) return;
+
+    if (resetPage !== false) currentPage = 1;
 
     grid.innerHTML = '';
 
@@ -233,10 +240,16 @@ function renderBlogFeed(posts) {
                 <p>No posts available yet. Check back soon!</p>
             </div>
         `;
+        renderPaginationControls(null, 0, 0);
         return;
     }
 
-    items.forEach((post, index) => {
+    const totalPages = Math.ceil(items.length / POSTS_PER_PAGE);
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    const pageItems = items.slice(start, start + POSTS_PER_PAGE);
+
+    pageItems.forEach((post, index) => {
         const fields = post.fields;
         if (!fields) return;
 
@@ -254,7 +267,9 @@ function renderBlogFeed(posts) {
 
         let imageUrl = getImageUrl(fields.coverImage?.sys?.id, posts.includes);
 
-        const tagBadges = tags.map(tag =>
+        // Filter out series tags from display
+        const displayTags = tags.filter(t => !t.startsWith('series:'));
+        const tagBadges = displayTags.map(tag =>
             `<span class="inline-block bg-orange-100 text-orange-700 text-xs font-medium px-2 py-0.5 rounded-full">${tag}</span>`
         ).join('');
 
@@ -282,6 +297,52 @@ function renderBlogFeed(posts) {
         `;
         grid.appendChild(card);
     });
+
+    renderPaginationControls(posts, items.length, totalPages);
+}
+
+function renderPaginationControls(posts, totalItems, totalPages) {
+    const existing = document.getElementById('blog-pagination');
+    if (existing) existing.remove();
+
+    if (!posts || totalPages <= 1) return;
+
+    const gridParent = document.getElementById('blog-grid').parentElement;
+    const nav = document.createElement('nav');
+    nav.id = 'blog-pagination';
+    nav.setAttribute('aria-label', 'Blog pagination');
+    nav.className = 'mt-12 flex justify-center items-center gap-2 flex-wrap';
+
+    function makeBtn(label, page, isCurrent, isDisabled) {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.disabled = isDisabled;
+        btn.className = [
+            'px-4 py-2 rounded-full text-sm font-medium transition-colors',
+            isCurrent ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:border-orange-500 hover:text-orange-600',
+            isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+        ].join(' ');
+
+        if (!isDisabled && !isCurrent) {
+            btn.addEventListener('click', () => {
+                currentPage = page;
+                renderBlogFeed(posts, false);
+                document.getElementById('blog-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
+        return btn;
+    }
+
+    nav.appendChild(makeBtn('\u2190 Prev', currentPage - 1, false, currentPage === 1));
+
+    const delta = 2;
+    for (let p = Math.max(1, currentPage - delta); p <= Math.min(totalPages, currentPage + delta); p++) {
+        nav.appendChild(makeBtn(String(p), p, p === currentPage, false));
+    }
+
+    nav.appendChild(makeBtn('Next \u2192', currentPage + 1, false, currentPage === totalPages));
+
+    gridParent.appendChild(nav);
 }
 
 // --- Single Post Rendering ---
@@ -345,6 +406,27 @@ function renderSinglePost(result) {
     document.title = `${title} | SamaBrains Blog`;
     updateMetaTags(title, excerpt, imageUrl, canonicalPostUrl);
 
+    // Canonical link
+    const canonicalLink = document.getElementById('canonical-link');
+    if (canonicalLink) canonicalLink.setAttribute('href', canonicalPostUrl);
+
+    // JSON-LD structured data
+    const schemaOrg = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": title,
+        "description": excerpt,
+        "url": canonicalPostUrl,
+        "datePublished": fields.date || '',
+        "dateModified": fields.date || '',
+        "author": { "@type": "Person", "name": author, "url": "https://samabrains.com" },
+        "publisher": { "@type": "Organization", "name": "SamaBrains", "url": "https://samabrains.com", "logo": { "@type": "ImageObject", "url": "https://samabrains.com/favicon.svg" } },
+        "image": imageUrl,
+        "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalPostUrl }
+    };
+    const ldScript = document.getElementById('structured-data');
+    if (ldScript) ldScript.textContent = JSON.stringify(schemaOrg);
+
     // Tag badges
     const tagBadgesHtml = tags.length > 0
         ? `<div class="flex flex-wrap justify-center gap-2 mb-6">${tags.map(tag =>
@@ -385,7 +467,7 @@ function renderSinglePost(result) {
                 ${htmlContent}
             </div>
 
-            <div class="mt-16 pt-8 border-t border-gray-200 text-center">
+            <div id="share-section" class="mt-16 pt-8 border-t border-gray-200 text-center">
                 <p class="text-gray-600 font-medium mb-4">Share this article</p>
                 <div class="sharethis-inline-share-buttons"
                     data-url="${canonicalUrl}"
@@ -421,8 +503,253 @@ function renderSinglePost(result) {
         });
     }
 
-    // Syntax highlighting
-    if (window.Prism) Prism.highlightAll();
+    // Syntax highlighting + copy buttons
+    if (window.Prism) {
+        Prism.highlightAll();
+        setTimeout(initCopyButtons, 100);
+    } else {
+        window.addEventListener('load', () => {
+            if (window.Prism) Prism.highlightAll();
+            initCopyButtons();
+        });
+    }
+
+    // Reading progress bar
+    initReadingProgress();
+
+    // Breadcrumbs
+    injectBreadcrumbs(title, fields.slug);
+
+    // Related posts (async, non-blocking)
+    renderRelatedPosts(fields.slug, tags);
+
+    // Series navigation (async, non-blocking)
+    renderSeriesNav(fields.slug, tags, container);
+}
+
+// --- Reading Progress Bar ---
+
+function initReadingProgress() {
+    const bar = document.getElementById('reading-progress');
+    if (!bar) return;
+
+    function updateProgress() {
+        const article = document.querySelector('#post-content article');
+        if (!article) return;
+
+        const articleTop = article.getBoundingClientRect().top + window.scrollY;
+        const articleHeight = article.offsetHeight;
+        const windowHeight = window.innerHeight;
+        const scrolled = window.scrollY - articleTop;
+        const scrollable = articleHeight - windowHeight;
+
+        if (scrollable <= 0) { bar.style.width = '100%'; return; }
+        const progress = Math.min(100, Math.max(0, (scrolled / scrollable) * 100));
+        bar.style.width = progress + '%';
+    }
+
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+}
+
+// --- Copy-to-Clipboard ---
+
+function initCopyButtons() {
+    document.querySelectorAll('.prose pre').forEach(pre => {
+        if (pre.querySelector('.copy-code-btn')) return;
+        const code = pre.querySelector('code');
+        if (!code) return;
+
+        const btn = document.createElement('button');
+        btn.className = 'copy-code-btn';
+        btn.textContent = 'Copy';
+        btn.setAttribute('aria-label', 'Copy code to clipboard');
+
+        btn.addEventListener('click', () => {
+            const text = code.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+            });
+        });
+
+        pre.appendChild(btn);
+    });
+}
+
+// --- Breadcrumbs ---
+
+function injectBreadcrumbs(title, slug) {
+    const backLink = document.querySelector('a[href="/blog.html"]');
+    if (!backLink) return;
+
+    const breadcrumb = document.createElement('nav');
+    breadcrumb.id = 'breadcrumbs';
+    breadcrumb.setAttribute('aria-label', 'Breadcrumb');
+    breadcrumb.className = 'flex items-center gap-2 text-sm text-gray-500 mb-3';
+    breadcrumb.innerHTML = `
+        <a href="/" class="hover:text-orange-600 transition-colors">Home</a>
+        <i class="fas fa-chevron-right text-xs text-gray-400"></i>
+        <a href="/blog.html" class="hover:text-orange-600 transition-colors">Blog</a>
+        <i class="fas fa-chevron-right text-xs text-gray-400"></i>
+        <span class="text-gray-700 font-medium truncate max-w-xs">${title}</span>
+    `;
+    backLink.parentNode.insertBefore(breadcrumb, backLink);
+
+    // BreadcrumbList JSON-LD
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://samabrains.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://samabrains.com/blog.html" },
+            { "@type": "ListItem", "position": 3, "name": title, "item": `https://samabrains.com/blog/${slug}` }
+        ]
+    };
+    const breadcrumbScript = document.createElement('script');
+    breadcrumbScript.type = 'application/ld+json';
+    breadcrumbScript.id = 'breadcrumb-data';
+    breadcrumbScript.textContent = JSON.stringify(breadcrumbSchema);
+    document.head.appendChild(breadcrumbScript);
+}
+
+// --- Related Posts ---
+
+async function renderRelatedPosts(currentSlug, currentTags) {
+    if (!currentTags || currentTags.length === 0) return;
+
+    const data = await fetchPostsFromCMS();
+    const items = (data.items || []).filter(p => p.fields && p.fields.slug !== currentSlug);
+
+    const scored = items.map(post => {
+        const tags = getPostTags(post.fields);
+        const tagsArr = Array.isArray(tags) ? tags : (tags ? [tags] : []);
+        // Exclude series tags from matching
+        const contentTags = tagsArr.filter(t => !t.startsWith('series:'));
+        const currentContentTags = currentTags.filter(t => !t.startsWith('series:'));
+        const overlap = contentTags.filter(t => currentContentTags.includes(t)).length;
+        return { post, overlap, date: post.fields.date || '' };
+    }).filter(s => s.overlap > 0);
+
+    scored.sort((a, b) => b.overlap - a.overlap || new Date(b.date) - new Date(a.date));
+    const related = scored.slice(0, 3);
+    if (related.length === 0) return;
+
+    const cards = related.map(({ post }) => {
+        const f = post.fields;
+        const imgUrl = getImageUrl(f.coverImage?.sys?.id, data.includes);
+        const title = f.title || f.tittle || 'Untitled';
+        const slug = f.slug || '';
+        const excerpt = f.excerpt || '';
+        const date = f.date ? new Date(f.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+        return `
+            <a href="/blog/${slug}" class="group block bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 card-hover">
+                <div class="h-44 overflow-hidden bg-gray-100 img-skeleton">
+                    <img src="${imgUrl}" alt="${title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80'">
+                </div>
+                <div class="p-5">
+                    <p class="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wider">${date}</p>
+                    <h4 class="text-base font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2 mb-2">${title}</h4>
+                    <p class="text-sm text-gray-600 line-clamp-2">${excerpt}</p>
+                </div>
+            </a>`;
+    }).join('');
+
+    const section = document.createElement('div');
+    section.className = 'mt-16 pt-8 border-t border-gray-200';
+    section.id = 'related-posts';
+    section.innerHTML = `
+        <h3 class="text-2xl font-bold text-gray-900 mb-6">Related Articles</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">${cards}</div>
+    `;
+
+    const shareDiv = document.getElementById('share-section');
+    if (shareDiv) {
+        shareDiv.parentNode.insertBefore(section, shareDiv);
+    } else {
+        const article = document.querySelector('#post-content article');
+        if (article) article.appendChild(section);
+    }
+}
+
+// --- Post Series Navigation ---
+
+async function renderSeriesNav(currentSlug, currentTags, container) {
+    const seriesTags = (currentTags || []).filter(t => t.startsWith('series:'));
+    if (seriesTags.length === 0) return;
+
+    const seriesName = seriesTags[0].replace('series:', '').trim();
+
+    const data = await fetchPostsFromCMS();
+    const seriesPosts = (data.items || [])
+        .filter(p => {
+            const tags = getPostTags(p.fields);
+            const tagsArr = Array.isArray(tags) ? tags : (tags ? [tags] : []);
+            return tagsArr.some(t => t === seriesTags[0]);
+        })
+        .sort((a, b) => new Date(a.fields.date || 0) - new Date(b.fields.date || 0));
+
+    if (seriesPosts.length < 2) return;
+
+    const currentIndex = seriesPosts.findIndex(p => p.fields.slug === currentSlug);
+
+    const listItems = seriesPosts.map((post, i) => {
+        const f = post.fields;
+        const isCurrentPost = f.slug === currentSlug;
+        const postTitle = f.title || f.tittle || 'Untitled';
+        return isCurrentPost
+            ? `<li class="flex items-center gap-2 py-1.5">
+                <span class="w-6 h-6 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-bold flex-shrink-0">${i + 1}</span>
+                <span class="font-semibold text-gray-900 text-sm">${postTitle}</span>
+                <span class="ml-auto text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">Current</span>
+              </li>`
+            : `<li class="flex items-center gap-2 py-1.5">
+                <span class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-xs flex items-center justify-center font-bold flex-shrink-0">${i + 1}</span>
+                <a href="/blog/${f.slug}" class="text-sm text-orange-600 hover:underline">${postTitle}</a>
+              </li>`;
+    }).join('');
+
+    const prevPost = currentIndex > 0 ? seriesPosts[currentIndex - 1] : null;
+    const nextPost = currentIndex < seriesPosts.length - 1 ? seriesPosts[currentIndex + 1] : null;
+
+    const navLinks = `
+        <div class="flex justify-between mt-4 pt-4 border-t border-gray-100">
+            ${prevPost ? `<a href="/blog/${prevPost.fields.slug}" class="text-sm text-orange-600 hover:underline flex items-center gap-1">
+                <i class="fas fa-arrow-left text-xs"></i> Previous
+            </a>` : '<span></span>'}
+            ${nextPost ? `<a href="/blog/${nextPost.fields.slug}" class="text-sm text-orange-600 hover:underline flex items-center gap-1">
+                Next <i class="fas fa-arrow-right text-xs"></i>
+            </a>` : '<span></span>'}
+        </div>
+    `;
+
+    const seriesBox = document.createElement('div');
+    seriesBox.id = 'series-nav';
+    seriesBox.className = 'mb-10 bg-orange-50 border border-orange-200 rounded-2xl p-6';
+    seriesBox.innerHTML = `
+        <div class="flex items-center gap-2 mb-4">
+            <i class="fas fa-layer-group text-orange-500"></i>
+            <h3 class="text-sm font-bold text-orange-700 uppercase tracking-wider m-0">Series: ${seriesName}</h3>
+        </div>
+        <ul class="space-y-0.5 list-none m-0 p-0">${listItems}</ul>
+        ${navLinks}
+    `;
+
+    const article = container.querySelector('article');
+    if (article) article.prepend(seriesBox);
 }
 
 function initTocScrollSpy(headingIds) {

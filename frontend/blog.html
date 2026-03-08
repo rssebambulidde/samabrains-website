@@ -22,6 +22,9 @@
     <meta name="twitter:description" content="Insights on AI automation, web development, data analytics, and digital solutions.">
     <meta name="twitter:image" content="https://samabrains.com/assets/og-image.jpg">
 
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="SamaBrains Blog RSS" href="/rss.xml">
+
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -121,6 +124,17 @@
         .dark-mode .bg-orange-100 { background-color: rgba(255, 107, 53, 0.15) !important; }
         .dark-mode .text-orange-700 { color: #ff8a65 !important; }
         .dark-mode .tag-filter-btn.bg-gray-200 { background-color: #3a3a3a; color: #d1d1d1; }
+
+        /* Pagination dark mode */
+        .dark-mode #blog-pagination button.bg-white {
+            background-color: #2d2d2d !important;
+            border-color: #4a4a4a !important;
+            color: #d1d1d1 !important;
+        }
+        .dark-mode #blog-pagination button.bg-white:hover {
+            border-color: #ff8a65 !important;
+            color: #ff8a65 !important;
+        }
     </style>
 </head>
 

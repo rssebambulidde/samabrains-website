@@ -21,6 +21,15 @@
     <meta name="twitter:description" content="">
     <meta name="twitter:image" content="">
 
+    <!-- Canonical URL -->
+    <link rel="canonical" href="" id="canonical-link">
+
+    <!-- RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="SamaBrains Blog RSS" href="/rss.xml">
+
+    <!-- Structured Data (JSON-LD) — filled by blog.js / build.js / CF Function -->
+    <script type="application/ld+json" id="structured-data"></script>
+
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -446,10 +455,111 @@
         /* Dark mode tag badges */
         .dark-mode .bg-orange-100 { background-color: rgba(255, 107, 53, 0.15) !important; }
         .dark-mode .text-orange-700 { color: #ff8a65 !important; }
+
+        /* Copy-to-clipboard buttons on code blocks */
+        .prose pre { position: relative; }
+        .copy-code-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background: rgba(255,255,255,0.15);
+            color: #e5e5e5;
+            transition: background 0.2s ease, color 0.2s ease;
+            line-height: 1.6;
+        }
+        .copy-code-btn:hover { background: rgba(255,255,255,0.25); }
+        .copy-code-btn.copied { background: #4ade80; color: #1a1a1a; }
+
+        /* Breadcrumbs dark mode */
+        .dark-mode #breadcrumbs a { color: #b3b3b3 !important; }
+        .dark-mode #breadcrumbs a:hover { color: #ff8a65 !important; }
+        .dark-mode #breadcrumbs span.text-gray-700 { color: #d1d1d1 !important; }
+        .dark-mode #breadcrumbs .text-gray-400 { color: #5a5a5a !important; }
+
+        /* Series navigation dark mode */
+        .dark-mode #series-nav {
+            background-color: rgba(255, 107, 53, 0.08) !important;
+            border-color: rgba(255, 107, 53, 0.3) !important;
+        }
+        .dark-mode #series-nav li span.bg-gray-200 {
+            background-color: #3a3a3a !important;
+            color: #b3b3b3 !important;
+        }
+        .dark-mode #series-nav li span.text-gray-900 { color: #f3f4f6 !important; }
+        .dark-mode #series-nav .border-gray-100 { border-color: #4a4a4a !important; }
+        .dark-mode #series-nav .text-orange-700 { color: #ff8a65 !important; }
+        .dark-mode #series-nav .bg-orange-50 { background-color: rgba(255, 107, 53, 0.08) !important; }
+
+        /* Related posts dark mode — inherits existing .dark-mode .bg-white etc. */
+
+        /* ===== Print Stylesheet ===== */
+        @media print {
+            nav, footer, #toc-sidebar, .toc-mobile,
+            #share-section, a[href="/blog.html"],
+            #reading-progress, #related-posts,
+            #series-nav .flex.justify-between,
+            .copy-code-btn, #blog-pagination,
+            #breadcrumbs + a[href="/blog.html"] { display: none !important; }
+
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 12pt;
+                line-height: 1.6;
+            }
+
+            .lg\:flex { display: block !important; }
+            .lg\:flex-1 { max-width: 100% !important; }
+
+            * {
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
+
+            .gradient-text {
+                -webkit-text-fill-color: #ff6b35 !important;
+                color: #ff6b35 !important;
+            }
+
+            .prose a { color: #ff6b35 !important; text-decoration: underline !important; }
+
+            img {
+                max-width: 100% !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            pre {
+                white-space: pre-wrap !important;
+                word-break: break-all !important;
+                border: 1px solid #e5e7eb !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            h1, h2, h3, h4 {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+
+            #breadcrumbs { display: flex !important; }
+            #series-nav { border: 1px solid #e5e7eb !important; }
+            section.pt-32 { padding-top: 1cm !important; }
+        }
     </style>
 </head>
 
 <body class="bg-gray-50 smooth-scroll">
+    <!-- Reading Progress Bar -->
+    <div id="reading-progress" style="position:fixed;top:0;left:0;width:0%;height:3px;background:linear-gradient(90deg,#ff6b35,#f7931e);z-index:9999;transition:width 0.1s linear;pointer-events:none;" aria-hidden="true"></div>
+
     <!-- Navigation -->
     <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
         <div class="container mx-auto px-6 py-4">

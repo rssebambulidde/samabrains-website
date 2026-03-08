@@ -68,6 +68,31 @@ export async function onRequest(context) {
         if (tags.length > 0) {
           html = html.replace('</head>', `    <meta name="keywords" content="${escapeAttr(tags.join(', '))}">\n</head>`);
         }
+
+        // Inject canonical link
+        html = html.replace(
+          /<link rel="canonical" href="" id="canonical-link">/,
+          `<link rel="canonical" href="${postUrl}" id="canonical-link">`
+        );
+
+        // Inject JSON-LD structured data
+        const schemaOrg = JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": title,
+          "description": description,
+          "url": postUrl,
+          "datePublished": fields.date || '',
+          "dateModified": fields.date || '',
+          "author": { "@type": "Person", "name": fields.author || 'SamaBrains Team', "url": "https://samabrains.com" },
+          "publisher": { "@type": "Organization", "name": "SamaBrains", "url": "https://samabrains.com", "logo": { "@type": "ImageObject", "url": "https://samabrains.com/favicon.svg" } },
+          "image": imageUrl,
+          "mainEntityOfPage": { "@type": "WebPage", "@id": postUrl }
+        });
+        html = html.replace(
+          /<script type="application\/ld\+json" id="structured-data"><\/script>/,
+          `<script type="application/ld+json" id="structured-data">${schemaOrg}</script>`
+        );
       }
     }
   } catch (err) {
