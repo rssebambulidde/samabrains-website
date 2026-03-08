@@ -46,6 +46,9 @@
     <!-- ShareThis inline share buttons -->
     <script type="text/javascript" src="https://platform-api.sharethis.com/js/sharethis.js#property=68013a5a6eb4310012fde07d&product=sop" async="async"></script>
 
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6859477325721314" crossorigin="anonymous"></script>
+
     <!-- Prism.js for syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" crossorigin="anonymous">
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" crossorigin="anonymous"></script>
@@ -500,12 +503,31 @@
         /* Related posts dark mode — inherits existing .dark-mode .bg-white etc. */
 
         /* ===== Print Stylesheet ===== */
+        /* AdSense ad containers */
+        .ad-container {
+            max-width: 728px;
+            margin: 2rem auto;
+            padding: 0.5rem 0;
+            text-align: center;
+            position: relative;
+        }
+        .ad-container::before {
+            content: 'Advertisement';
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #9ca3af;
+            margin-bottom: 0.25rem;
+        }
+        .dark-mode .ad-container::before { color: #6b7280; }
+
         @media print {
             nav, footer, #toc-sidebar, .toc-mobile,
             #share-section, a[href="/blog.html"],
             #reading-progress, #related-posts,
             #series-nav .flex.justify-between,
-            .copy-code-btn, #blog-pagination,
+            .copy-code-btn, #blog-pagination, .ad-container,
             #breadcrumbs + a[href="/blog.html"] { display: none !important; }
 
             body {

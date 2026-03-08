@@ -296,9 +296,18 @@ function renderBlogFeed(posts, resetPage) {
             </div>
         `;
         grid.appendChild(card);
+
+        // Insert a full-width ad row after every 3rd card
+        if ((index + 1) % 3 === 0 && index < pageItems.length - 1) {
+            const adRow = document.createElement('div');
+            adRow.className = 'col-span-1 md:col-span-2 lg:col-span-3';
+            adRow.innerHTML = adUnitHtml('ad-listing');
+            grid.appendChild(adRow);
+        }
     });
 
     renderPaginationControls(posts, items.length, totalPages);
+    initAdSlots();
 }
 
 function renderPaginationControls(posts, totalItems, totalPages) {
@@ -391,6 +400,17 @@ function renderSinglePost(result) {
         const headingIds = toc ? toc.headingIds : null;
         const processedNodes = mergeConsecutiveCodeParagraphs(fields.content.content);
         htmlContent = renderRichText(processedNodes, headingIds);
+
+        // Inject mid-content ad after the 3rd <h2 section
+        const h2Regex = /<h2[\s>]/gi;
+        let h2Match, h2Count = 0, midAdInsertPos = -1;
+        while ((h2Match = h2Regex.exec(htmlContent)) !== null) {
+            h2Count++;
+            if (h2Count === 3) { midAdInsertPos = h2Match.index; break; }
+        }
+        if (midAdInsertPos > 0) {
+            htmlContent = htmlContent.slice(0, midAdInsertPos) + adUnitHtml('ad-post-mid') + htmlContent.slice(midAdInsertPos);
+        }
     }
 
     let formattedDate = 'Recent';
@@ -457,6 +477,8 @@ function renderSinglePost(result) {
                 </div>
             </header>
 
+            ${adUnitHtml('ad-post-header')}
+
             <div class="mb-12 rounded-3xl overflow-hidden shadow-lg border border-gray-100 bg-gray-100 img-skeleton">
                 <img src="${imageUrl}" alt="${title}" loading="lazy" class="w-full h-auto object-cover max-h-[500px]">
             </div>
@@ -475,6 +497,8 @@ function renderSinglePost(result) {
                     data-image="${imageUrl}"
                     data-description="${excerpt}"></div>
             </div>
+
+            ${adUnitHtml('ad-post-footer')}
         </article>
     `;
 
@@ -525,6 +549,9 @@ function renderSinglePost(result) {
 
     // Series navigation (async, non-blocking)
     renderSeriesNav(fields.slug, tags, container);
+
+    // Initialize AdSense ad slots
+    initAdSlots();
 }
 
 // --- Reading Progress Bar ---
@@ -932,4 +959,27 @@ function renderInline(nodes) {
         });
         return text;
     }).join('');
+}
+
+// --- AdSense Helpers ---
+
+const AD_CLIENT = 'ca-pub-6859477325721314';
+
+function adUnitHtml(extraClass) {
+    return `<div class="ad-container${extraClass ? ' ' + extraClass : ''}">
+        <ins class="adsbygoogle"
+            style="display:block"
+            data-ad-client="${AD_CLIENT}"
+            data-ad-slot=""
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+    </div>`;
+}
+
+function initAdSlots() {
+    document.querySelectorAll('.adsbygoogle').forEach(ad => {
+        if (!ad.dataset.adsbygoogleStatus) {
+            try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { /* AdSense not loaded yet */ }
+        }
+    });
 }

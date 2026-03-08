@@ -25,6 +25,9 @@
     <!-- RSS Feed -->
     <link rel="alternate" type="application/rss+xml" title="SamaBrains Blog RSS" href="/rss.xml">
 
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6859477325721314" crossorigin="anonymous"></script>
+
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -135,6 +138,25 @@
             border-color: #ff8a65 !important;
             color: #ff8a65 !important;
         }
+
+        /* AdSense ad containers */
+        .ad-container {
+            max-width: 728px;
+            margin: 2rem auto;
+            padding: 0.5rem 0;
+            text-align: center;
+            position: relative;
+        }
+        .ad-container::before {
+            content: 'Advertisement';
+            display: block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #9ca3af;
+            margin-bottom: 0.25rem;
+        }
+        .dark-mode .ad-container::before { color: #6b7280; }
     </style>
 </head>
 
