@@ -170,6 +170,19 @@
         #back-to-top.visible { opacity: 1; visibility: visible; }
         #back-to-top:hover { transform: scale(1.1); }
 
+        /* Bookmark remove button */
+        .bookmark-remove-btn {
+            position: absolute; top: 6px; right: 6px;
+            width: 24px; height: 24px; border-radius: 50%;
+            background: rgba(0,0,0,0.6); color: white;
+            border: none; cursor: pointer; font-size: 0.65rem;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .group\\/card:hover .bookmark-remove-btn,
+        .relative:hover .bookmark-remove-btn { opacity: 1; }
+        .bookmark-remove-btn:hover { background: #ef4444; }
+
         /* Reading history */
         .reading-history .scrollbar-thin { scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
         .reading-history .scrollbar-thin::-webkit-scrollbar { height: 6px; }

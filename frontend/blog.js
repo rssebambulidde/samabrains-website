@@ -1291,17 +1291,23 @@ function renderBookmarks() {
     if (!grid) return;
 
     const cards = bookmarks.map(b => `
-        <a href="/blog/${b.slug}" class="flex-shrink-0 w-56 group block bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
-            <div class="h-32 overflow-hidden bg-gray-100">
-                <img src="${b.imageUrl || ''}" alt="${b.title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80'">
-            </div>
-            <div class="p-3">
-                <h4 class="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-2">${b.title}</h4>
-            </div>
-        </a>
+        <div class="flex-shrink-0 w-56 relative group/card">
+            <a href="/blog/${b.slug}" class="block bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
+                <div class="h-32 overflow-hidden bg-gray-100">
+                    <img src="${b.imageUrl || ''}" alt="${b.title}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105" onerror="this.src='https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=800&q=80'">
+                </div>
+                <div class="p-3">
+                    <h4 class="text-sm font-bold text-gray-900 group-hover/card:text-orange-600 transition-colors line-clamp-2">${b.title}</h4>
+                </div>
+            </a>
+            <button class="bookmark-remove-btn" data-slug="${b.slug}" aria-label="Remove bookmark" title="Remove">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
     `).join('');
 
     const section = document.createElement('div');
+    section.id = 'bookmarks-section';
     section.className = 'reading-history mb-10';
     section.innerHTML = `
         <h3 class="text-lg font-bold text-gray-900 mb-3"><i class="fas fa-bookmark text-orange-500 mr-2"></i>Saved for Later</h3>
@@ -1309,6 +1315,19 @@ function renderBookmarks() {
     `;
 
     grid.parentElement.insertBefore(section, grid);
+
+    // Remove bookmark handlers
+    section.querySelectorAll('.bookmark-remove-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const slug = btn.dataset.slug;
+            let bks = getBookmarks();
+            bks = bks.filter(b => b.slug !== slug);
+            localStorage.setItem('bookmarks', JSON.stringify(bks));
+            btn.closest('.relative').remove();
+            if (bks.length === 0) section.remove();
+        });
+    });
 }
 
 // --- Reading Position Memory ---
