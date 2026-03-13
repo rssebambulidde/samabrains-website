@@ -113,7 +113,7 @@ function calculateReadingTime(nodes) {
     return `${minutes} min read`;
 }
 
-function updateMetaTags(title, description, imageUrl, url) {
+function updateMetaTags(title, description, imageUrl, url, author, publishedTime) {
     function setMeta(attr, attrValue, content) {
         let el = document.querySelector(`meta[${attr}="${attrValue}"]`);
         if (el) {
@@ -130,6 +130,13 @@ function updateMetaTags(title, description, imageUrl, url) {
     setMeta('property', 'og:image', imageUrl);
     setMeta('property', 'og:url', url);
     setMeta('property', 'og:type', 'article');
+    if (publishedTime) {
+        setMeta('property', 'article:published_time', publishedTime);
+        setMeta('property', 'article:modified_time', publishedTime);
+    }
+    if (author) {
+        setMeta('property', 'article:author', author);
+    }
     setMeta('name', 'twitter:title', title);
     setMeta('name', 'twitter:description', description);
     setMeta('name', 'twitter:image', imageUrl);
@@ -427,7 +434,7 @@ function renderSinglePost(result) {
     // SEO — use canonical /blog/ URL
     const canonicalPostUrl = `https://samabrains.com/blog/${fields.slug || ''}`;
     document.title = `${title} | SamaBrains Blog`;
-    updateMetaTags(title, excerpt, imageUrl, canonicalPostUrl);
+    updateMetaTags(title, excerpt, imageUrl, canonicalPostUrl, author, fields.date || '');
 
     // Canonical link
     const canonicalLink = document.getElementById('canonical-link');

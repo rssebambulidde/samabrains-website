@@ -84,6 +84,8 @@ async function prerenderBlogPages() {
         const title = escapeAttr(fields.title || fields.tittle || 'Article');
         const description = escapeAttr(fields.excerpt || title);
         const postUrl = `https://samabrains.com/blog/${slug}`;
+        const author = escapeAttr(fields.author || 'SamaBrains Team');
+        const publishedTime = escapeAttr(fields.date || '');
 
         // Resolve cover image from Contentful includes
         let imageUrl = '';
@@ -102,6 +104,9 @@ async function prerenderBlogPages() {
         html = html.replace(/<meta property="og:description" content=".*?">/, `<meta property="og:description" content="${description}">`);
         html = html.replace(/<meta property="og:image" content=".*?">/, `<meta property="og:image" content="${imageUrl}">`);
         html = html.replace(/<meta property="og:url" content=".*?">/, `<meta property="og:url" content="${postUrl}">`);
+        html = html.replace(/<meta property="article:published_time" content=".*?">/, `<meta property="article:published_time" content="${publishedTime}">`);
+        html = html.replace(/<meta property="article:modified_time" content=".*?">/, `<meta property="article:modified_time" content="${publishedTime}">`);
+        html = html.replace(/<meta property="article:author" content=".*?">/, `<meta property="article:author" content="${author}">`);
         html = html.replace(/<meta name="twitter:title" content=".*?">/, `<meta name="twitter:title" content="${title}">`);
         html = html.replace(/<meta name="twitter:description" content=".*?">/, `<meta name="twitter:description" content="${description}">`);
         html = html.replace(/<meta name="twitter:image" content=".*?">/, `<meta name="twitter:image" content="${imageUrl}">`);

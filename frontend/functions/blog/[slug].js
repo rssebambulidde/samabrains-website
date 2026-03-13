@@ -40,6 +40,8 @@ export async function onRequest(context) {
         const description = fields.excerpt || title;
         const tags = fields.tags || [];
         const postUrl = `https://samabrains.com/blog/${slug}`;
+        const author = fields.author || 'SamaBrains Team';
+        const publishedTime = fields.date || '';
 
         // Resolve cover image URL from includes
         let imageUrl = 'https://samabrains.com/assets/og-image.jpg';
@@ -60,6 +62,9 @@ export async function onRequest(context) {
         html = html.replace(/<meta property="og:description" content=".*?">/, `<meta property="og:description" content="${escapeAttr(description)}">`);
         html = html.replace(/<meta property="og:image" content=".*?">/, `<meta property="og:image" content="${imageUrl}">`);
         html = html.replace(/<meta property="og:url" content=".*?">/, `<meta property="og:url" content="${postUrl}">`);
+        html = html.replace(/<meta property="article:published_time" content=".*?">/, `<meta property="article:published_time" content="${escapeAttr(publishedTime)}">`);
+        html = html.replace(/<meta property="article:modified_time" content=".*?">/, `<meta property="article:modified_time" content="${escapeAttr(publishedTime)}">`);
+        html = html.replace(/<meta property="article:author" content=".*?">/, `<meta property="article:author" content="${escapeAttr(author)}">`);
         html = html.replace(/<meta name="twitter:title" content=".*?">/, `<meta name="twitter:title" content="${escapeAttr(title)}">`);
         html = html.replace(/<meta name="twitter:description" content=".*?">/, `<meta name="twitter:description" content="${escapeAttr(description)}">`);
         html = html.replace(/<meta name="twitter:image" content=".*?">/, `<meta name="twitter:image" content="${imageUrl}">`);
